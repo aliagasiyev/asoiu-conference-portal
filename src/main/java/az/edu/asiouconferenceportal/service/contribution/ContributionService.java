@@ -1,2 +1,13 @@
 package az.edu.asiouconferenceportal.service.contribution;
-public interface ContributionService { }
+
+import az.edu.asiouconferenceportal.dto.contribution.ContributionCreateRequest;
+import az.edu.asiouconferenceportal.dto.contribution.ContributionResponse;
+import az.edu.asiouconferenceportal.dto.contribution.ContributionUpdateRequest;
+import java.util.List;
+
+public interface ContributionService {
+	List<ContributionResponse> myContributions();
+	ContributionResponse create(ContributionCreateRequest request);
+	ContributionResponse update(Long id, ContributionUpdateRequest request);
+	void delete(Long id);
+}

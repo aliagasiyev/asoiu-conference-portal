@@ -1,0 +1,2 @@
+package az.edu.asiouconferenceportal.entity.user;
+public class User { }

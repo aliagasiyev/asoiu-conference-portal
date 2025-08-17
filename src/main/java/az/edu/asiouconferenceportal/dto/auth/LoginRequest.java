@@ -1,2 +1,15 @@
 package az.edu.asiouconferenceportal.dto.auth;
-public class LoginRequest { }
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class LoginRequest {
+	@Email
+	@NotBlank
+	private String email;
+
+	@NotBlank
+	private String password;
+}

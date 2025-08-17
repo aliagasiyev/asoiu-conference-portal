@@ -1,2 +1,11 @@
 package az.edu.asiouconferenceportal.dto.reference;
-public class ConferenceSettingsResponse { }
+
+import lombok.Data;
+
+@Data
+public class ConferenceSettingsResponse {
+	private Long id;
+	private String conferenceName;
+	private boolean submissionsOpen;
+	private boolean cameraReadyOpen;
+}

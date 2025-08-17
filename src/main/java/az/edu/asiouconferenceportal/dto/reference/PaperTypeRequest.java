@@ -1,2 +1,11 @@
 package az.edu.asiouconferenceportal.dto.reference;
-public class PaperTypeRequest { }
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class PaperTypeRequest {
+	@NotBlank
+	private String name;
+	private Boolean active;
+}

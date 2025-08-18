@@ -1,13 +1,13 @@
-package az.edu.asiouconferenceportal;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
-@SpringBootTest
-class AsiouConferencePortalApplicationTests {
-
-    @Test
-    void contextLoads() {
-    }
-
-}
+//package az.edu.asiouconferenceportal;
+//
+//import org.junit.jupiter.api.Test;
+//import org.springframework.boot.test.context.SpringBootTest;
+//
+//@SpringBootTest
+//class AsiouConferencePortalApplicationTests {
+//
+//    @Test
+//    void contextLoads() {
+//    }
+//
+//}

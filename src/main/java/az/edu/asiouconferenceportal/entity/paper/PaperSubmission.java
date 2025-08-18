@@ -7,6 +7,7 @@ import az.edu.asiouconferenceportal.entity.reference.PaperTypeEntity;
 import az.edu.asiouconferenceportal.entity.reference.Topic;
 import az.edu.asiouconferenceportal.entity.user.User;
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -50,4 +51,11 @@ public class PaperSubmission extends BaseEntity {
 	@OneToOne
 	@JoinColumn(name = "file_id")
 	private StoredFile pdf;
+
+	@OneToOne
+	@JoinColumn(name = "camera_ready_file_id")
+	private StoredFile cameraReadyPdf;
+
+	@Column(name = "withdrawn_at")
+	private Instant withdrawnAt;
 }

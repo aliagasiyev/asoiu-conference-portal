@@ -6,11 +6,13 @@ import az.edu.asiouconferenceportal.entity.paper.CoAuthor;
 import az.edu.asiouconferenceportal.entity.paper.PaperSubmission;
 import az.edu.asiouconferenceportal.entity.reference.PaperTypeEntity;
 import az.edu.asiouconferenceportal.entity.reference.Topic;
+import az.edu.asiouconferenceportal.entity.reference.ConferenceSettings;
 import az.edu.asiouconferenceportal.exception.NotFoundException;
 import az.edu.asiouconferenceportal.repository.paper.CoAuthorRepository;
 import az.edu.asiouconferenceportal.repository.paper.PaperRepository;
 import az.edu.asiouconferenceportal.repository.reference.PaperTypeRepository;
 import az.edu.asiouconferenceportal.repository.reference.TopicRepository;
+import az.edu.asiouconferenceportal.repository.reference.ConferenceSettingsRepository;
 import az.edu.asiouconferenceportal.repository.user.UserRepository;
 import az.edu.asiouconferenceportal.service.file.FileStorageService;
 import az.edu.asiouconferenceportal.service.paper.PaperService;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +37,7 @@ public class PaperServiceImpl implements PaperService {
 	private final PaperTypeRepository paperTypeRepository;
 	private final UserRepository userRepository;
 	private final FileStorageService fileStorageService;
+    private final ConferenceSettingsRepository settingsRepository;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -41,6 +45,16 @@ public class PaperServiceImpl implements PaperService {
 		var userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 		var user = userRepository.findByEmail(userEmail).orElseThrow(() -> new NotFoundException("User not found"));
 		return paperRepository.findAllByAuthorOrderByCreatedAtDesc(user).stream().map(this::toResponse).collect(Collectors.toList());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<PaperResponse> myPapers(int page, int size) {
+		var userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userRepository.findByEmail(userEmail).orElseThrow(() -> new NotFoundException("User not found"));
+		return paperRepository.findAllByAuthorOrderByCreatedAtDesc(user, PageRequest.of(page, size))
+			.map(this::toResponse)
+			.getContent();
 	}
 
 	@Override
@@ -100,6 +114,15 @@ public class PaperServiceImpl implements PaperService {
 
 	@Override
 	@Transactional
+	public PaperResponse withdraw(Long id) {
+		PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+		p.setStatus(az.edu.asiouconferenceportal.common.enums.PaperStatus.WITHDRAWN);
+		p.setWithdrawnAt(java.time.Instant.now());
+		return toResponse(p);
+	}
+
+	@Override
+	@Transactional
 	public PaperResponse uploadPdf(Long id, MultipartFile file) {
 		PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
 		try {
@@ -109,6 +132,52 @@ public class PaperServiceImpl implements PaperService {
 		} catch (IOException e) {
 			throw new RuntimeException("File upload failed");
 		}
+	}
+
+	@Override
+	@Transactional
+	public PaperResponse uploadCameraReady(Long id, MultipartFile file) {
+		PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+		try {
+			StoredFile sf = fileStorageService.store(file);
+			p.setCameraReadyPdf(sf);
+			return toResponse(p);
+		} catch (IOException e) {
+			throw new RuntimeException("File upload failed");
+		}
+	}
+
+	@Override
+	@Transactional
+	public PaperResponse submit(Long id) {
+		PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+		ConferenceSettings s = settingsRepository.findAll().stream().findFirst().orElse(null);
+		if (s != null && !s.isSubmissionsOpen()) throw new IllegalArgumentException("Submissions are closed");
+		if (p.getPdf() == null || p.getTopics().isEmpty() || p.getPaperType() == null) {
+			throw new IllegalArgumentException("Missing required fields to submit");
+		}
+		p.setStatus(az.edu.asiouconferenceportal.common.enums.PaperStatus.SUBMITTED);
+		return toResponse(p);
+	}
+
+	@Override
+	@Transactional
+	public PaperResponse submitCameraReady(Long id) {
+		PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+		ConferenceSettings s = settingsRepository.findAll().stream().findFirst().orElse(null);
+		if (s != null && !s.isCameraReadyOpen()) throw new IllegalArgumentException("Camera-ready submissions are closed");
+		if (p.getCameraReadyPdf() == null) {
+			throw new IllegalArgumentException("Camera-ready file required");
+		}
+		p.setStatus(az.edu.asiouconferenceportal.common.enums.PaperStatus.CAMERA_READY_SUBMITTED);
+		return toResponse(p);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PaperResponse getById(Long id) {
+		PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+		return toResponse(p);
 	}
 
 	private void applyRequestToPaper(PaperSubmission p, String title, String keywords, String paperAbstract, Long paperTypeId, List<Long> topicIds) {
@@ -143,10 +212,55 @@ public class PaperServiceImpl implements PaperService {
 			return x;
 		}).collect(Collectors.toList()));
 		r.setFileId(p.getPdf() != null ? p.getPdf().getId() : null);
+		r.setCameraReadyFileId(p.getCameraReadyPdf() != null ? p.getCameraReadyPdf().getId() : null);
 		return r;
 	}
 
 	private String nonNull(String v) { return v == null ? "" : v; }
+
+	@Override
+	@Transactional
+	public PaperResponse addCoAuthor(Long paperId, CoAuthorRequest request) {
+		PaperSubmission p = paperRepository.findById(paperId).orElseThrow(() -> new NotFoundException("Paper not found"));
+		CoAuthor ca = new CoAuthor();
+		ca.setPaper(p);
+		ca.setFirstName(request.getFirstName());
+		ca.setLastName(request.getLastName());
+		ca.setEmail(request.getEmail());
+		ca.setAffiliation(nonNull(request.getAffiliation()));
+		ca.setPosition(nonNull(request.getPosition()));
+		ca.setCountry(nonNull(request.getCountry()));
+		ca.setCity(nonNull(request.getCity()));
+		coAuthorRepository.save(ca);
+		p.getCoAuthors().add(ca);
+		return toResponse(p);
+	}
+
+	@Override
+	@Transactional
+	public PaperResponse updateCoAuthor(Long paperId, Long coAuthorId, CoAuthorRequest request) {
+		PaperSubmission p = paperRepository.findById(paperId).orElseThrow(() -> new NotFoundException("Paper not found"));
+		CoAuthor ca = coAuthorRepository.findById(coAuthorId).orElseThrow(() -> new NotFoundException("Co-author not found"));
+		if (!Objects.equals(ca.getPaper().getId(), p.getId())) throw new NotFoundException("Co-author not in paper");
+		ca.setFirstName(request.getFirstName());
+		ca.setLastName(request.getLastName());
+		ca.setEmail(request.getEmail());
+		ca.setAffiliation(nonNull(request.getAffiliation()));
+		ca.setPosition(nonNull(request.getPosition()));
+		ca.setCountry(nonNull(request.getCountry()));
+		ca.setCity(nonNull(request.getCity()));
+		return toResponse(p);
+	}
+
+	@Override
+	@Transactional
+	public void deleteCoAuthor(Long paperId, Long coAuthorId) {
+		PaperSubmission p = paperRepository.findById(paperId).orElseThrow(() -> new NotFoundException("Paper not found"));
+		CoAuthor ca = coAuthorRepository.findById(coAuthorId).orElseThrow(() -> new NotFoundException("Co-author not found"));
+		if (!Objects.equals(ca.getPaper().getId(), p.getId())) throw new NotFoundException("Co-author not in paper");
+		p.getCoAuthors().remove(ca);
+		coAuthorRepository.delete(ca);
+	}
 }
 
 

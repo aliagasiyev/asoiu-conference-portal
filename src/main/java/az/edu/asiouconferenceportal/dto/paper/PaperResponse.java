@@ -15,4 +15,5 @@ public class PaperResponse {
 	private List<String> topics;
 	private List<CoAuthorRequest> coAuthors;
 	private Long fileId;
+	private Long cameraReadyFileId;
 }

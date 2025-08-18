@@ -9,6 +9,7 @@ import az.edu.asiouconferenceportal.service.contribution.ContributionService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,16 @@ public class ContributionServiceImpl implements ContributionService {
 		return repository.findAllByUserOrderByCreatedAtDesc(user).stream()
 			.map(this::toResponse)
 			.collect(Collectors.toList());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<ContributionResponse> myContributions(int page, int size) {
+		var email = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+		return repository.findAllByUserOrderByCreatedAtDesc(user, PageRequest.of(page, size))
+			.map(this::toResponse)
+			.getContent();
 	}
 
 	@Override

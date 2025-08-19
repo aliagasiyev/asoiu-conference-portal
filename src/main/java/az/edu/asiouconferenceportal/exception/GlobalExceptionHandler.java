@@ -24,6 +24,8 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(RuntimeException.class)
 	public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
-		return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
+		String msg = ex.getMessage();
+		if (msg == null || msg.isBlank()) msg = "Unexpected error";
+		return ResponseEntity.badRequest().body(Map.of("message", msg));
 	}
 }

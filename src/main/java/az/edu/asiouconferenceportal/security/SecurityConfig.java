@@ -11,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 
 @Configuration
 @RequiredArgsConstructor
@@ -22,9 +23,11 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
+			.cors(Customizer.withDefaults())
 			.csrf(csrf -> csrf.disable())
 			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(reg -> reg
+				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 				.requestMatchers("/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/error").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/reference/**").permitAll()
 				.anyRequest().authenticated()

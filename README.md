@@ -20,16 +20,6 @@ A comprehensive Spring Boot application for managing academic conferences, inclu
 - **Build Tool**: Gradle with Wrapper
 - **Java Version**: 17+
 
-## Project Screenshots
-
-### Project Structure Overview
-![Project Structure](my-project/images/Screenshot%202025-08-21%20at%2013.58.13.png)
-
-*Complete project structure showing the organized Spring Boot architecture with all packages, configuration files, and resources following best practices.*
-
-### API Documentation (Swagger UI)
-![API Documentation](my-project/images/Screenshot%202025-08-21%20at%2013.58.38.png)
-
 *Interactive API documentation showing the paper-controller and user-controller endpoints. The application includes integrated Swagger/OpenAPI 3.0 documentation accessible at `http://localhost:8080/swagger-ui.html` when running.*
 
 ## Project Structure

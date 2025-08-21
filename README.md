@@ -20,6 +20,16 @@ A comprehensive Spring Boot application for managing academic conferences, inclu
 - **Build Tool**: Gradle with Wrapper
 - **Java Version**: 17+
 
+## Project Screenshots
+
+### Project Structure Overview
+![Project Structure](my-project/images/Screenshot%202025-08-21%20at%2013.58.13.png)
+
+### Detailed Package Structure
+![Package Structure](my-project/images/Screenshot%202025-08-21%20at%2013.58.38.png)
+
+*The screenshots above show the complete project structure with all packages and configuration files organized following Spring Boot best practices.*
+
 ## Project Structure
 
 ```
@@ -299,8 +309,6 @@ This project is open source. Please add a LICENSE file to specify the terms of u
 - **Repository**: [github.com/aliagasiyev/asoiu-conference-portal](https://github.com/aliagasiyev/asoiu-conference-portal)
 - **Issues**: Report bugs and feature requests via GitHub Issues
 - **Developer**: [@aliagasiyev](https://github.com/aliagasiyev)
-- **Developer**: [@ilkinrzayeev](https://github.com/ilkinrzayeev)
-
 
 ## Acknowledgments
 

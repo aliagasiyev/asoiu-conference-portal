@@ -139,13 +139,6 @@ graph TD
 - **Caching & Performance**: Redis caching for frequently accessed data.
 - **Rate Limiting & Throttling**: Protect auth and upload endpoints.
 - **Admin UI/Dashboard**: Review workloads, session planning, audit trails.
-
----
-
-### Contributors
-
-- [@aliagasiyev](https://github.com/aliagasiyev)
-
 ---
 
 ### License

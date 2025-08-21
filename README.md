@@ -25,10 +25,12 @@ A comprehensive Spring Boot application for managing academic conferences, inclu
 ### Project Structure Overview
 ![Project Structure](my-project/images/Screenshot%202025-08-21%20at%2013.58.13.png)
 
-### Detailed Package Structure
-![Package Structure](my-project/images/Screenshot%202025-08-21%20at%2013.58.38.png)
+*Complete project structure showing the organized Spring Boot architecture with all packages, configuration files, and resources following best practices.*
 
-*The screenshots above show the complete project structure with all packages and configuration files organized following Spring Boot best practices.*
+### API Documentation (Swagger UI)
+![API Documentation](my-project/images/Screenshot%202025-08-21%20at%2013.58.38.png)
+
+*Interactive API documentation showing the paper-controller and user-controller endpoints. The application includes integrated Swagger/OpenAPI 3.0 documentation accessible at `http://localhost:8080/swagger-ui.html` when running.*
 
 ## Project Structure
 
@@ -135,6 +137,20 @@ java -jar build/libs/asoiu-conference-portal-*.jar
 The application will start on `http://localhost:8080`
 
 ## API Documentation
+
+### Interactive Documentation
+
+The application includes **Swagger/OpenAPI 3.0** integration for interactive API documentation. Once the application is running, you can access:
+
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- **OpenAPI JSON**: `http://localhost:8080/v3/api-docs`
+
+The Swagger interface provides:
+- Complete endpoint documentation
+- Request/response schemas
+- Interactive API testing
+- Authentication support
+- Real-time API exploration
 
 ### Authentication Endpoints
 

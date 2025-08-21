@@ -6,7 +6,6 @@
 [![Spring Web](https://img.shields.io/badge/Spring%20Web-REST-6DB33F?logo=spring&logoColor=white)](https://spring.io/projects/spring-boot)
 [![Spring Security](https://img.shields.io/badge/Spring%20Security-RBAC-6DB33F?logo=springsecurity&logoColor=white)](https://spring.io/projects/spring-security)
 [![JPA/Hibernate](https://img.shields.io/badge/JPA%2FHibernate-ORM-59666C?logo=hibernate)](https://hibernate.org/)
-
 [![JWT](https://img.shields.io/badge/JWT-Auth-000000?logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
 [![JUnit 5](https://img.shields.io/badge/JUnit%205-Tests-25A162?logo=junit5&logoColor=white)](https://junit.org/junit5/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supported-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -20,7 +19,7 @@ Web platform for ASOIU academic conferences: user registration, secure login, pa
 
 ### Features
 
-- **Authentication & Authorization**: Email/password login, JWT-based sessions, Role-Based Access Control (RBAC).
+- **Authentication & Authorization**: Email/password login, JWT-based sessions, role-based access control (RBAC).
 - **Paper Management**: Submit papers, add/update co-authors, upload new versions, withdraw submissions.
 - **Review Workflow**: Assign reviewers, submit reviews, track recommendations and final decisions.
 - **Sessions & Topics**: Manage conference sessions, topics, and scheduling.
@@ -38,42 +37,117 @@ Web platform for ASOIU academic conferences: user registration, secure login, pa
 <p align="center">
   <img src="docs/images/swagger-papers-users.png" alt="Swagger - Paper & User Controllers" width="960">
 </p>
+
+---
+
 ### Project Structure
 
-> Layout derived from repository structure and standard Spring Boot conventions.
+```text
+asoiu-conference-portal/
+├─ build.gradle / settings.gradle / gradlew / gradlew.bat
+├─ docs/
+│  └─ images/
+│     ├─ swagger-admin-contribution.png
+│     └─ swagger-papers-users.png
+├─ src/
+│  ├─ main/
+│  │  ├─ java/
+│  │  │  └─ az/edu/asiouconferenceportal/
+│  │  │     ├─ config/
+│  │  │     │  └─ DataInitializer.java
+│  │  │     ├─ security/
+│  │  │     │  └─ SecurityConfig.java
+│  │  │     ├─ controller/      (auth, user, paper, contribution, reference, file, home)
+│  │  │     ├─ service/         (business logic)
+│  │  │     ├─ repository/      (Spring Data JPA repositories)
+│  │  │     ├─ entity/          (JPA entities)
+│  │  │     ├─ dto/             (request/response DTOs)
+│  │  │     └─ exception/       (global handlers, custom exceptions)
+│  │  └─ resources/
+│  │     └─ application.properties
+└─ storage/                      (runtime uploads/artifacts; consider .gitignore)
+```
 
-```text current authenticated user profile
+---
 
-- **Users**
-  - `GET /api/users/me` — Fetch own profile
-  - `PUT /api/users/me` — Update own profile
-  - `GET /api/admin/users` — List users (ADMIN)
-  - `PATCH /api/admin/users/{id}/roles` — Update user roles (ADMIN)
+### Installation & Run
 
-- **Papers**
-  - `GET /api/papers` — List papers (filter by status/author)
-  - `POST /api/papers` — Submit a paper
-  - `GET /api/papers/{id}` — Get paper details
-  - `PUT /api/papers/{id}` — Update paper metadata
-  - `DELETE /api/papers/{id}` — Withdraw paper
-  - `POST /api/papers/{id}/coauthors` — Add a co-author
-  - `DELETE /api/papers/{id}/coauthors/{coAuthorId}` — Remove co-author
-  - `POST /api/papers/{id}/files` — Upload manuscript/revision
+#### Prerequisites
+- Java 17+
+- PostgreSQL/MySQL running locally
+- Gradle Wrapper is included (no local Gradle needed)
 
-- **Reviews**
-  - `GET /api/reviews?paperId={id}` — List reviews for a paper (COMMITTEE/ADMIN)
-  - `POST /api/reviews` — Submit a review (assigned reviewer)
-  - `PUT /api/reviews/{id}` — Update review
-  - `POST /api/papers/{id}/assignments` — Assign reviewer(s) (COMMITTEE/ADMIN)
-  - `POST /api/papers/{id}/decision` — Record final decision (COMMITTEE/ADMIN)
+#### Steps
+```bash
+git clone https://github.com/aliagasiyev/asoiu-conference-portal.git
+cd asoiu-conference-portal
 
-- **Sessions & Topics**
-  - `GET /api/sessions` — List sessions
-  - `POST /api/sessions` — Create session (ADMIN)
-  - `PUT /api/sessions/{id}` — Update session (ADMIN)
-  - `DELETE /api/sessions/{id}` — Delete session (ADMIN)
-  - `GET /api/topics` — List topics
-  - `POST /api/topics` — Create topic (ADMIN)
+# Configure DB in src/main/resources/application.properties or application.yml
+# Example (PostgreSQL):
+# spring.datasource.url=jdbc:postgresql://localhost:5432/asoiu_conf
+# spring.datasource.username=asoiu
+# spring.datasource.password=change_me
+# spring.jpa.hibernate.ddl-auto=update
+
+./gradlew clean bootRun
+# or build a jar:
+./gradlew clean build
+java -jar build/libs/*.jar
+```
+
+---
+
+### API Endpoints
+
+#### Auth Controller
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+
+#### User Controller
+- `GET /api/me`
+- `PUT /api/me/password`
+
+#### Paper Controller
+- `GET /api/papers`
+- `POST /api/papers`
+- `GET /api/papers/{id}`
+- `PUT /api/papers/{id}`
+- `DELETE /api/papers/{id}`
+- `POST /api/papers/{id}/withdraw`
+- `POST /api/papers/{id}/submit`
+- `POST /api/papers/{id}/submit-camera-ready`
+- `POST /api/papers/{id}/camera-ready`
+- `POST /api/papers/{id}/file`
+- `POST /api/papers/{id}/co-authors`
+- `PUT /api/papers/{id}/co-authors/{coAuthorId}`
+- `DELETE /api/papers/{id}/co-authors/{coAuthorId}`
+
+#### Contribution Controller
+- `GET /api/contributions`
+- `POST /api/contributions`
+- `GET /api/contributions/{id}`
+- `PUT /api/contributions/{id}`
+- `DELETE /api/contributions/{id}`
+
+#### Reference (Public)
+- `GET /api/reference/topics`
+- `GET /api/reference/paper-types`
+
+#### Admin Reference
+- `GET /api/admin/reference/settings`
+- `PUT /api/admin/reference/settings`
+- `GET /api/admin/reference/topics`
+- `POST /api/admin/reference/topics`
+- `PUT /api/admin/reference/topics/{id}`
+- `DELETE /api/admin/reference/topics/{id}`
+- `GET /api/admin/reference/paper-types`
+- `POST /api/admin/reference/paper-types`
+- `PUT /api/admin/reference/paper-types/{id}`
+- `DELETE /api/admin/reference/paper-types/{id}`
+
+#### Files and Home
+- `GET /api/files/{id}`
+- `GET /api/home`
 
 ---
 
@@ -88,8 +162,9 @@ graph TD
   subgraph Backend[Spring Boot Application]
     A[Auth Controller/Service]
     P[Papers Controller/Service]
-    R[Reviews Controller/Service]
-    S[Sessions/Topics Controller/Service]
+    C[Contribution Controller/Service]
+    R[Reviews/Reference Controllers/Services]
+    S[Admin Reference Controller/Service]
     Sec[Spring Security (JWT + RBAC)]
     Repo[(JPA Repositories)]
   end
@@ -98,11 +173,13 @@ graph TD
 
   U -->|HTTP/JSON| A
   U -->|HTTP/JSON| P
+  U -->|HTTP/JSON| C
   U -->|HTTP/JSON| R
   U -->|HTTP/JSON| S
 
   A --> Sec
   P --> Sec
+  C --> Sec
   R --> Sec
   S --> Sec
 
@@ -114,46 +191,31 @@ graph TD
 
 ### Techniques & Patterns Used
 
-- **Layered Architecture**
-  - `controller` → `service` → `repository` → `entity` with DTOs at the edges.
-- **RESTful API Design**
-  - Resource-oriented endpoints, standard HTTP verbs and status codes.
-- **Spring Security with JWT**
-  - Stateless authentication using JWT; Bearer tokens in `Authorization` header; method or route-level RBAC.
-- **RBAC (Role-Based Access Control)**
-  - Distinct roles for AUTHOR, COMMITTEE, ADMIN; restricted admin endpoints.
-- **Repository Pattern (Spring Data JPA)**
-  - `repository` interfaces delegate CRUD and query methods to Spring Data; Hibernate as JPA provider.
-- **DTOs and (Optional) Mapping Layer**
-  - Request/response DTOs for input validation and clean API contracts; mapper utilities (manual or MapStruct if introduced).
-- **Validation & Error Handling**
-  - Bean Validation (e.g., `@Valid`) on DTOs; global exception handlers for consistent error responses.
-- **File Handling (Submissions)**
-  - Endpoints to upload manuscripts and revisions; persistence of metadata and storage location.
-- **Pagination & Filtering**
-  - Common list endpoints support pagination/sorting/filter query parameters for large datasets.
-- **Configuration Management**
-  - Externalized config via `application.yml`, profiles for `dev`/`prod`.
-
-> Note: Class/package names above reflect standard Spring Boot conventions for a project of this kind. Align names with your codebase.
+- **Layered Architecture**: `controller` → `service` → `repository` → `entity` (+ DTOs).
+- **Spring Security + JWT**: Stateless auth; `Authorization: Bearer <token>`; method/route-level RBAC.
+- **Repository Pattern (Spring Data JPA)**: CRUD + derived queries; Hibernate as provider.
+- **DTOs & Validation**: Request/response DTOs; Bean Validation on inputs; global exception handling.
+- **REST Best Practices**: Resource-oriented routes, proper verbs/status codes, pagination/filtering on list endpoints.
+- **Config Profiles**: Externalized configuration via `application.properties`/`application.yml`.
 
 ---
 
 ### Future Improvements
 
-- **CI/CD**: GitHub Actions pipelines (build, test, security scan).
-- **Containerization**: Dockerfile + Docker Compose for app + DB.
-- **Email Notifications**: Submission, assignment, and decision updates.
-- **File Security**: Antivirus scanning, file type/size validation, S3 or similar storage.
-- **Observability**: Centralized logging, metrics (Micrometer), health checks.
-- **Caching & Performance**: Redis caching for frequently accessed data.
-- **Rate Limiting & Throttling**: Protect auth and upload endpoints.
-- **Admin UI/Dashboard**: Review workloads, session planning, audit trails.
+- CI/CD with GitHub Actions, code quality/security scans.
+- Containerization (Dockerfile + Compose for app + DB).
+- Email notifications for submissions/assignments/decisions.
+- External file storage (S3) + antivirus scanning.
+- Observability: Micrometer/Prometheus, health checks, structured logging.
+- Caching (Redis) for frequently accessed references and lists.
+- Rate limiting on auth/upload endpoints.
+- Admin dashboards and audit logs.
+
 ---
 
 ### License
 
-No license file detected. Consider adding `LICENSE` (MIT/Apache-2.0) to clarify usage.
+Add a `LICENSE` (MIT/Apache-2.0) to clarify usage.
 
 ---
 

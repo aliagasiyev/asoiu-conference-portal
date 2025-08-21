@@ -26,20 +26,6 @@ Web platform for ASOIU academic conferences: user registration, secure login, pa
 - **Profiles & Contributions**: User profiles, speaker/reviewer contribution forms.
 - **Auditability**: Status transitions, timestamps, persistent history via the database.
 
----
-
-### API Docs (Swagger) — Screenshots
-
-<p align="center">
-  <img src="docs/images/swagger-admin-contribution.png" alt="Swagger - Admin Reference & Contribution Controllers" width="960">
-</p>
-
-<p align="center">
-  <img src="docs/images/swagger-papers-users.png" alt="Swagger - Paper & User Controllers" width="960">
-</p>
-
----
-
 ### Project Structure
 
 ```text

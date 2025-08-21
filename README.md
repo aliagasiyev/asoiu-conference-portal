@@ -5,7 +5,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-App-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![Spring Web](https://img.shields.io/badge/Spring%20Web-REST-6DB33F?logo=spring&logoColor=white)](https://spring.io/projects/spring-boot)
 [![Spring Security](https://img.shields.io/badge/Spring%20Security-RBAC-6DB33F?logo=springsecurity&logoColor=white)](https://spring.io/projects/spring-security)
-[![JPA/Hibernate](https://img.shields.io/badge/JPA%2FHibernate-ORM-59666C?logo=hibernate)](https://hibernate.org/)![Uploading Screenshot 2025-08-21 at 13.31.33.png…]()
+[![JPA/Hibernate](https://img.shields.io/badge/JPA%2FHibernate-ORM-59666C?logo=hibernate)](https://hibernate.org/)
 
 [![JWT](https://img.shields.io/badge/JWT-Auth-000000?logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
 [![JUnit 5](https://img.shields.io/badge/JUnit%205-Tests-25A162?logo=junit5&logoColor=white)](https://junit.org/junit5/)

@@ -23,7 +23,7 @@ A comprehensive Spring Boot application for managing academic conferences, inclu
 ## Project Screenshots
 
 ### Project Structure Overview
-![Project Structure](my-project/images/Screenshot%202025-08-21%20at%2013.58.13.png)
+![Project Structure](/Users/aliagasiyev/IdeaProjects/asoiu-conference-portal/my-project/images/Screenshot 2025-08-21 at 13.58.13.png)
 
 ### Detailed Package Structure
 ![Package Structure](my-project/images/Screenshot%202025-08-21%20at%2013.58.38.png)

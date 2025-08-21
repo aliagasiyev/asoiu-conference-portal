@@ -315,6 +315,7 @@ This project is open source. Please add a LICENSE file to specify the terms of u
 - **Repository**: [github.com/aliagasiyev/asoiu-conference-portal](https://github.com/aliagasiyev/asoiu-conference-portal)
 - **Issues**: Report bugs and feature requests via GitHub Issues
 - **Developer**: [@aliagasiyev](https://github.com/aliagasiyev)
+- **Developer**: [@ilkinrzayeev](https://github.com/ilkinrzayeev)
 
 ## Acknowledgments
 

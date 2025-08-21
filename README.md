@@ -27,9 +27,37 @@ Web platform for ASOIU academic conferences: user registration, secure login, pa
 - **Auditability**: Status transitions, timestamps, persistent history via the database.
 
 ---
-### API Docs (Swagger) — Screenshots
-![Swagger - Admin Reference & Contribution Controllers](docs/images/swagger-admin-contribution.png)
-![Swagger - Paper & User Controllers](docs/images/swagger-papers-users.png)
+graph TD
+  subgraph "Client"
+    U["User: Author / Reviewer / Admin"]
+  end
+
+  subgraph "Backend"
+    A["Auth"]
+    P["Papers"]
+    C["Contributions"]
+    R["Reference/Reviews"]
+    S["Admin Reference"]
+    Sec["Security (JWT + RBAC)"]
+    Repo["JPA Repositories"]
+  end
+
+  DB["Relational Database"]
+
+  U --> A
+  U --> P
+  U --> C
+  U --> R
+  U --> S
+
+  A --> Sec
+  P --> Sec
+  C --> Sec
+  R --> Sec
+  S --> Sec
+
+  Sec --> Repo
+  Repo --> DB
 
 ### Project Structure
 

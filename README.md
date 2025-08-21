@@ -1,3 +1,28 @@
+# ASOIU Conference Portal
+
+A comprehensive Spring Boot application for managing academic conferences, including paper submissions, peer reviews, and session management.
+
+## Features
+
+- **User Management**: Registration, authentication, and role-based access control
+- **Paper Submission**: Authors can submit papers with metadata and file uploads
+- **Peer Review System**: Committee members can review and evaluate submissions
+- **Session Management**: Organize accepted papers into conference sessions
+- **Multi-role Support**: AUTHORS, COMMITTEE members, and ADMIN users
+- **JWT Authentication**: Stateless security with role-based authorization
+- **File Handling**: Manuscript uploads with validation and storage
+
+## Technology Stack
+
+- **Backend**: Spring Boot 3.x, Spring Security, Spring Data JPA
+- **Database**: PostgreSQL (MySQL compatible)
+- **Authentication**: JWT tokens with role-based access control
+- **Build Tool**: Gradle with Wrapper
+- **Java Version**: 17+
+
+## Project Structure
+
+```
 asoiu-conference-portal/
 ├─ build.gradle
 ├─ settings.gradle
@@ -11,38 +36,40 @@ asoiu-conference-portal/
    ├─ main/
    │  ├─ java/
    │  │  └─ (Spring Boot application root)
-   │  │     ├─ config/           (security, web, application config)
-   │  │     ├─ controller/       (REST controllers: auth, users, papers, reviews, sessions)
-   │  │     ├─ service/          (business logic services)
-   │  │     ├─ repository/       (Spring Data JPA repositories)
-   │  │     ├─ entity/           (JPA/Hibernate entities)
-   │  │     ├─ dto/              (request/response DTOs)
-   │  │     ├─ mapper/           (DTO↔entity mapping if used)
-   │  │     └─ exception/        (global handlers, custom exceptions)
+   │  │     ├─ config/           # Security, web, application config
+   │  │     ├─ controller/       # REST controllers
+   │  │     ├─ service/          # Business logic services
+   │  │     ├─ repository/       # Spring Data JPA repositories
+   │  │     ├─ entity/           # JPA/Hibernate entities
+   │  │     ├─ dto/              # Request/response DTOs
+   │  │     ├─ mapper/           # DTO↔entity mapping
+   │  │     └─ exception/        # Global handlers, custom exceptions
    │  └─ resources/
-   │     ├─ application.yml      (environment configuration)
-   │     └─ db/migration/        (Flyway/Liquibase scripts if used)
+   │     ├─ application.yml      # Environment configuration
+   │     └─ db/migration/        # Database migration scripts
    └─ test/
-      └─ java/                   (JUnit 5 tests))
+      └─ java/                   # JUnit 5 tests
 ```
 
----
+## Installation & Setup
 
-### Installation & Run
+### Prerequisites
 
-#### Prerequisites
-- Java 17+ installed
-- A relational DB (e.g., PostgreSQL/MySQL)
-- No local Gradle required (uses Gradle Wrapper)
+- Java 17 or higher
+- PostgreSQL or MySQL database
+- Git
 
-#### 1) Clone
+### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/aliagasiyev/asoiu-conference-portal.git
 cd asoiu-conference-portal
 ```
 
-#### 2) Configure application properties
-Create or edit `src/main/resources/application.yml`:
+### 2. Database Configuration
+
+Create a PostgreSQL database and update `src/main/resources/application.yml`:
+
 ```yaml
 server:
   port: 8080
@@ -50,158 +77,231 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/asoiu_conf
-    username: asoiu
-    password: change_me
+    username: your_username
+    password: your_password
+    driver-class-name: org.postgresql.Driver
+  
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+    show-sql: false
 
 app:
   security:
     jwt:
-      secret: replace_with_strong_secret
-      expirationMinutes: 60
+      secret: your-256-bit-secret-key-here
+      expirationMinutes: 1440
 ```
-- For MySQL, switch the JDBC URL/driver as needed.
 
-#### 3) Run (development)
+For MySQL, use:
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/asoiu_conf
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+```
+
+### 3. Run the Application
+
+#### Development Mode
 ```bash
 ./gradlew clean bootRun
 ```
 
-#### 4) Build and run (production)
+#### Production Build
 ```bash
 ./gradlew clean build
 java -jar build/libs/asoiu-conference-portal-*.jar
 ```
 
----
+The application will start on `http://localhost:8080`
 
-### API Endpoints (Representative)
+## API Documentation
 
-> Align these with your implemented controllers. The following reflects the domain described by the project.
+### Authentication Endpoints
 
-- **Auth**
-  - `POST /api/auth/register` — Register a new user (default role: AUTHOR)
-  - `POST /api/auth/login` — Obtain JWT access token
-  - `POST /api/auth/refresh` — Refresh access token
-  - `GET /api/auth/me` — Get current authenticated user profile
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|---------|
+| POST | `/api/auth/register` | Register new user | Public |
+| POST | `/api/auth/login` | User login | Public |
+| POST | `/api/auth/refresh` | Refresh JWT token | Authenticated |
+| GET | `/api/auth/me` | Get current user profile | Authenticated |
 
-- **Users**
-  - `GET /api/users/me` — Fetch own profile
-  - `PUT /api/users/me` — Update own profile
-  - `GET /api/admin/users` — List users (ADMIN)
-  - `PATCH /api/admin/users/{id}/roles` — Update user roles (ADMIN)
+### User Management
 
-- **Papers**
-  - `GET /api/papers` — List papers (filter by status/author)
-  - `POST /api/papers` — Submit a paper
-  - `GET /api/papers/{id}` — Get paper details
-  - `PUT /api/papers/{id}` — Update paper metadata
-  - `DELETE /api/papers/{id}` — Withdraw paper
-  - `POST /api/papers/{id}/coauthors` — Add a co-author
-  - `DELETE /api/papers/{id}/coauthors/{coAuthorId}` — Remove co-author
-  - `POST /api/papers/{id}/files` — Upload manuscript/revision
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|---------|
+| GET | `/api/users/me` | Get own profile | Authenticated |
+| PUT | `/api/users/me` | Update own profile | Authenticated |
+| GET | `/api/admin/users` | List all users | Admin |
+| PATCH | `/api/admin/users/{id}/roles` | Update user roles | Admin |
 
-- **Reviews**
-  - `GET /api/reviews?paperId={id}` — List reviews for a paper (COMMITTEE/ADMIN)
-  - `POST /api/reviews` — Submit a review (assigned reviewer)
-  - `PUT /api/reviews/{id}` — Update review
-  - `POST /api/papers/{id}/assignments` — Assign reviewer(s) (COMMITTEE/ADMIN)
-  - `POST /api/papers/{id}/decision` — Record final decision (COMMITTEE/ADMIN)
+### Paper Management
 
-- **Sessions & Topics**
-  - `GET /api/sessions` — List sessions
-  - `POST /api/sessions` — Create session (ADMIN)
-  - `PUT /api/sessions/{id}` — Update session (ADMIN)
-  - `DELETE /api/sessions/{id}` — Delete session (ADMIN)
-  - `GET /api/topics` — List topics
-  - `POST /api/topics` — Create topic (ADMIN)
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|---------|
+| GET | `/api/papers` | List papers (with filters) | Authenticated |
+| POST | `/api/papers` | Submit new paper | Author |
+| GET | `/api/papers/{id}` | Get paper details | Authenticated |
+| PUT | `/api/papers/{id}` | Update paper metadata | Author/Admin |
+| DELETE | `/api/papers/{id}` | Withdraw paper | Author/Admin |
+| POST | `/api/papers/{id}/coauthors` | Add co-author | Author |
+| DELETE | `/api/papers/{id}/coauthors/{coAuthorId}` | Remove co-author | Author |
+| POST | `/api/papers/{id}/files` | Upload manuscript | Author |
 
----
+### Review System
 
-### Architecture Diagram
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|---------|
+| GET | `/api/reviews` | List reviews | Committee/Admin |
+| POST | `/api/reviews` | Submit review | Assigned Reviewer |
+| PUT | `/api/reviews/{id}` | Update review | Reviewer |
+| POST | `/api/papers/{id}/assignments` | Assign reviewers | Committee/Admin |
+| POST | `/api/papers/{id}/decision` | Record final decision | Committee/Admin |
+
+### Session & Topic Management
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|---------|
+| GET | `/api/sessions` | List sessions | Authenticated |
+| POST | `/api/sessions` | Create session | Admin |
+| PUT | `/api/sessions/{id}` | Update session | Admin |
+| DELETE | `/api/sessions/{id}` | Delete session | Admin |
+| GET | `/api/topics` | List topics | Authenticated |
+| POST | `/api/topics` | Create topic | Admin |
+
+## User Roles
+
+- **AUTHOR**: Can submit papers, view own submissions, respond to reviews
+- **COMMITTEE**: Can review assigned papers, view all submissions, make decisions
+- **ADMIN**: Full system access, user management, system configuration
+
+## Authentication
+
+The API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
+
+```
+Authorization: Bearer <your-jwt-token>
+```
+
+## Architecture
 
 ```mermaid
 graph TD
-  subgraph Client
-    U[User (Author/Reviewer/Admin)]
-  end
-
-  subgraph Backend[Spring Boot Application]
-    A[Auth Controller/Service]
-    P[Papers Controller/Service]
-    R[Reviews Controller/Service]
-    S[Sessions/Topics Controller/Service]
-    Sec[Spring Security (JWT + RBAC)]
-    Repo[(JPA Repositories)]
-  end
-
-  DB[(Relational Database)]
-
-  U -->|HTTP/JSON| A
-  U -->|HTTP/JSON| P
-  U -->|HTTP/JSON| R
-  U -->|HTTP/JSON| S
-
-  A --> Sec
-  P --> Sec
-  R --> Sec
-  S --> Sec
-
-  Sec --> Repo
-  Repo --> DB
+    subgraph "Client Layer"
+        A[Web Client]
+        B[Mobile App]
+        C[Admin Dashboard]
+    end
+    
+    subgraph "Spring Boot Application"
+        D[Controllers]
+        E[Services]
+        F[Repositories]
+        G[Security Layer]
+    end
+    
+    subgraph "Data Layer"
+        H[(PostgreSQL Database)]
+        I[File Storage]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    
+    D --> G
+    G --> E
+    E --> F
+    F --> H
+    E --> I
 ```
 
----
+## Design Patterns Used
 
-### Techniques & Patterns Used
+- **Layered Architecture**: Clear separation of concerns across controller, service, and repository layers
+- **Repository Pattern**: Data access abstraction using Spring Data JPA
+- **DTO Pattern**: Request/response objects separate from domain entities
+- **Dependency Injection**: Spring's IoC container manages component lifecycle
+- **JWT Token-based Authentication**: Stateless authentication mechanism
+- **Role-based Access Control (RBAC)**: Method-level security annotations
 
-- **Layered Architecture**
-  - `controller` → `service` → `repository` → `entity` with DTOs at the edges.
-- **RESTful API Design**
-  - Resource-oriented endpoints, standard HTTP verbs and status codes.
-- **Spring Security with JWT**
-  - Stateless authentication using JWT; Bearer tokens in `Authorization` header; method or route-level RBAC.
-- **RBAC (Role-Based Access Control)**
-  - Distinct roles for AUTHOR, COMMITTEE, ADMIN; restricted admin endpoints.
-- **Repository Pattern (Spring Data JPA)**
-  - `repository` interfaces delegate CRUD and query methods to Spring Data; Hibernate as JPA provider.
-- **DTOs and (Optional) Mapping Layer**
-  - Request/response DTOs for input validation and clean API contracts; mapper utilities (manual or MapStruct if introduced).
-- **Validation & Error Handling**
-  - Bean Validation (e.g., `@Valid`) on DTOs; global exception handlers for consistent error responses.
-- **File Handling (Submissions)**
-  - Endpoints to upload manuscripts and revisions; persistence of metadata and storage location.
-- **Pagination & Filtering**
-  - Common list endpoints support pagination/sorting/filter query parameters for large datasets.
-- **Configuration Management**
-  - Externalized config via `application.yml`, profiles for `dev`/`prod`.
+## Testing
 
-> Note: Class/package names above reflect standard Spring Boot conventions for a project of this kind. Align names with your codebase.
+Run the test suite:
 
----
+```bash
+./gradlew test
+```
 
-### Future Improvements
+Generate test coverage report:
 
-- **CI/CD**: GitHub Actions pipelines (build, test, security scan).
-- **Containerization**: Dockerfile + Docker Compose for app + DB.
-- **Email Notifications**: Submission, assignment, and decision updates.
-- **File Security**: Antivirus scanning, file type/size validation, S3 or similar storage.
-- **Observability**: Centralized logging, metrics (Micrometer), health checks.
-- **Caching & Performance**: Redis caching for frequently accessed data.
-- **Rate Limiting & Throttling**: Protect auth and upload endpoints.
-- **Admin UI/Dashboard**: Review workloads, session planning, audit trails.
+```bash
+./gradlew jacocoTestReport
+```
 
-### License
+## Configuration Profiles
 
-No license file detected. Consider adding `LICENSE` (MIT/Apache-2.0) to clarify usage.
+The application supports different profiles:
 
----
+- `dev`: Development configuration with detailed logging
+- `prod`: Production configuration with optimized settings
+- `test`: Testing configuration with H2 in-memory database
 
-### Contact
+Activate a profile:
 
-- GitHub: [aliagasiyev/asoiu-conference-portal](https://github.com/aliagasiyev/asoiu-conference-portal)
+```bash
+java -jar app.jar --spring.profiles.active=prod
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Future Enhancements
+
+- **Email Notifications**: Automated notifications for submissions, assignments, and decisions
+- **File Security**: Antivirus scanning and enhanced file validation
+- **CI/CD Pipeline**: Automated testing and deployment
+- **Docker Support**: Containerization for easy deployment
+- **Caching Layer**: Redis integration for improved performance
+- **API Rate Limiting**: Protection against abuse
+- **Admin Dashboard**: Web interface for system administration
+- **Mobile API**: Enhanced mobile application support
+
+## Security Considerations
+
+- JWT tokens are stateless and include expiration times
+- Password hashing using BCrypt
+- SQL injection prevention through parameterized queries
+- CORS configuration for cross-origin requests
+- Input validation on all endpoints
+- Role-based access control at method level
+
+## License
+
+This project is open source. Please add a LICENSE file to specify the terms of use.
+
+## Contact & Support
+
+- **Repository**: [github.com/aliagasiyev/asoiu-conference-portal](https://github.com/aliagasiyev/asoiu-conference-portal)
+- **Issues**: Report bugs and feature requests via GitHub Issues
+- **Developer**: [@aliagasiyev](https://github.com/aliagasiyev)
+
+## Acknowledgments
+
+- Spring Boot community for excellent documentation
+- ASOIU for supporting this open-source initiative
+- Contributors and testers who helped improve this project

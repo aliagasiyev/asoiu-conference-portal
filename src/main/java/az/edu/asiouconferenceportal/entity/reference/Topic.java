@@ -13,12 +13,12 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class Topic extends BaseEntity {
 
-	@Column(nullable = false, unique = true, length = 200)
-	private String name;
+    @Column(nullable = false, unique = true, length = 200)
+    private String name;
 
-	@Column(nullable = false)
-	private boolean active = true;
+    @Column(nullable = false)
+    private boolean active = true;
 
-	@Column(name = "order_index")
-	private Integer orderIndex;
+    @Column(name = "order_index")
+    private Integer orderIndex;
 }

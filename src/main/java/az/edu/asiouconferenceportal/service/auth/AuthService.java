@@ -5,8 +5,9 @@ import az.edu.asiouconferenceportal.dto.auth.LoginRequest;
 import az.edu.asiouconferenceportal.dto.auth.RegisterRequest;
 
 public interface AuthService {
-	JwtResponse login(LoginRequest request);
-	JwtResponse register(RegisterRequest request);
+    JwtResponse login(LoginRequest request);
+
+    JwtResponse register(RegisterRequest request);
 }
 
 

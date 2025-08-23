@@ -37,7 +37,6 @@ public class ContributionController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ContributionResponse> get(@PathVariable Long id) {
-		// simple pass-through using existing service
 		return ResponseEntity.ok(
 			contributionService.myContributions().stream().filter(c -> c.getId().equals(id)).findFirst()
 				.orElseThrow(() -> new RuntimeException("Not found"))

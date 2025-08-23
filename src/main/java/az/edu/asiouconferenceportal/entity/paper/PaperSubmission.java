@@ -7,8 +7,10 @@ import az.edu.asiouconferenceportal.entity.reference.PaperTypeEntity;
 import az.edu.asiouconferenceportal.entity.reference.Topic;
 import az.edu.asiouconferenceportal.entity.user.User;
 import jakarta.persistence.*;
+
 import java.time.Instant;
 import java.util.*;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -18,44 +20,44 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class PaperSubmission extends BaseEntity {
 
-	@Column(nullable = false)
-	private String title;
+    @Column(nullable = false)
+    private String title;
 
-	@Column(nullable = false)
-	private String keywords;
+    @Column(nullable = false)
+    private String keywords;
 
-	@Column(nullable = false, length = 4000)
-	private String paperAbstract;
+    @Column(nullable = false, length = 4000)
+    private String paperAbstract;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private PaperStatus status = PaperStatus.DRAFT;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaperStatus status = PaperStatus.DRAFT;
 
-	@ManyToOne(optional = false)
-	@JoinColumn(name = "author_id")
-	private User author;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "author_id")
+    private User author;
 
-	@ManyToOne(optional = false)
-	@JoinColumn(name = "paper_type_id")
-	private PaperTypeEntity paperType;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "paper_type_id")
+    private PaperTypeEntity paperType;
 
-	@ManyToMany
-	@JoinTable(name = "paper_topics",
-		joinColumns = @JoinColumn(name = "paper_id"),
-		inverseJoinColumns = @JoinColumn(name = "topic_id"))
-	private Set<Topic> topics = new HashSet<>();
+    @ManyToMany
+    @JoinTable(name = "paper_topics",
+            joinColumns = @JoinColumn(name = "paper_id"),
+            inverseJoinColumns = @JoinColumn(name = "topic_id"))
+    private Set<Topic> topics = new HashSet<>();
 
-	@OneToMany(mappedBy = "paper", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<CoAuthor> coAuthors = new ArrayList<>();
+    @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CoAuthor> coAuthors = new ArrayList<>();
 
-	@OneToOne
-	@JoinColumn(name = "file_id")
-	private StoredFile pdf;
+    @OneToOne
+    @JoinColumn(name = "file_id")
+    private StoredFile pdf;
 
-	@OneToOne
-	@JoinColumn(name = "camera_ready_file_id")
-	private StoredFile cameraReadyPdf;
+    @OneToOne
+    @JoinColumn(name = "camera_ready_file_id")
+    private StoredFile cameraReadyPdf;
 
-	@Column(name = "withdrawn_at")
-	private Instant withdrawnAt;
+    @Column(name = "withdrawn_at")
+    private Instant withdrawnAt;
 }

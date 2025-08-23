@@ -13,9 +13,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class PaperTypeEntity extends BaseEntity {
 
-	@Column(nullable = false, unique = true, length = 120)
-	private String name;
+    @Column(nullable = false, unique = true, length = 120)
+    private String name;
 
-	@Column(nullable = false)
-	private boolean active = true;
+    @Column(nullable = false)
+    private boolean active = true;
 }

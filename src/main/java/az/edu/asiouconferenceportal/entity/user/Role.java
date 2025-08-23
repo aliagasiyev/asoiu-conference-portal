@@ -12,6 +12,6 @@ import jakarta.persistence.Table;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Role extends BaseEntity {
-	@Column(name = "name", nullable = false, unique = true, length = 64)
-	private String name;
+    @Column(name = "name", nullable = false, unique = true, length = 64)
+    private String name;
 }

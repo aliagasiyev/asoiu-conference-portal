@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ContributionService {
     List<ContributionResponse> myContributions();
+
     List<ContributionResponse> myContributions(int page, int size);
 
     ContributionResponse create(ContributionCreateRequest request);

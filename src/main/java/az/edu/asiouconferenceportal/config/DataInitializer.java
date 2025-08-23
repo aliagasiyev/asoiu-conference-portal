@@ -26,9 +26,9 @@ public class DataInitializer implements ApplicationRunner {
 			return roleRepository.save(r);
 		});
 
-		if (!userRepository.existsByEmail("admin@asiou.az")) {
+		if (!userRepository.existsByEmail("admin@asoiu.az")) {
 			User u = new User();
-			u.setEmail("admin@asiou.az");
+			u.setEmail("admin@asoiu.az");
 			u.setPassword(passwordEncoder.encode("admin123"));
 			u.setFirstName("System");
 			u.setLastName("Admin");

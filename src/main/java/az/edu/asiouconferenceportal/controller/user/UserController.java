@@ -31,6 +31,7 @@ public class UserController {
 			@RequestBody ChangePasswordBody body) {
 		var u = userRepository.findByEmail(user.getUsername()).orElseThrow();
 		u.setPassword(passwordEncoder.encode(body.newPassword()));
+		userRepository.save(u);
 		return ResponseEntity.noContent().build();
 	}
 

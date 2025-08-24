@@ -7,6 +7,7 @@ import az.edu.asiouconferenceportal.repository.reference.ConferenceSettingsRepos
 import az.edu.asiouconferenceportal.service.reference.ConferenceSettingsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -40,6 +41,10 @@ public class ConferenceSettingsServiceImpl implements ConferenceSettingsService 
 		r.setCameraReadyOpen(s.isCameraReadyOpen());
 		return r;
 	}
+
+    @Scheduled(cron = "0 0 * * * *")
+    public void hourlyTick() {
+    }
 }
 
 

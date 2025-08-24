@@ -1,2 +1,2 @@
 package az.edu.asiouconferenceportal.common.enums;
-public enum UserRole { ADMIN, USER }
+public enum UserRole { ADMIN, USER, REVIEWER }

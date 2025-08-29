@@ -38,7 +38,13 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     public AssignmentResponse assignReviewer(Long paperId, AssignReviewerRequest request) {
         var paper = paperRepository.findById(paperId).orElseThrow(() -> new NotFoundException("Paper not found"));
-        var reviewer = userRepository.findById(request.getReviewerId()).orElseThrow(() -> new NotFoundException("Reviewer not found"));
+        var reviewer = userRepository.findByEmail(request.getReviewerEmail())
+            .orElseThrow(() -> new NotFoundException("Reviewer not found for email: " + request.getReviewerEmail()));
+        // ensure reviewer has REVIEWER role
+        boolean isReviewer = reviewer.getRoles().stream().anyMatch(r -> "REVIEWER".equalsIgnoreCase(r.getName()));
+        if (!isReviewer) {
+            throw new NotFoundException("User is not a reviewer: " + request.getReviewerEmail());
+        }
         var assignment = new ReviewAssignment();
         assignment.setPaper(paper);
         assignment.setReviewer(reviewer);

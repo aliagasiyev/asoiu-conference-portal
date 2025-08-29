@@ -8,6 +8,7 @@ import az.edu.asiouconferenceportal.repository.user.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,8 +28,7 @@ public class UserAdminController {
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/reviewers")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void createReviewer(@Valid @RequestBody CreateReviewerRequest req) {
+    public ResponseEntity<ReviewerCreatedResponse> createReviewer(@Valid @RequestBody CreateReviewerRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
             throw new IllegalArgumentException("Email already in use");
         }
@@ -43,7 +43,20 @@ public class UserAdminController {
         u.setFirstName(req.getFirstName());
         u.setLastName(req.getLastName());
         u.getRoles().add(reviewer);
-        userRepository.save(u);
+        u = userRepository.save(u);
+        ReviewerCreatedResponse resp = new ReviewerCreatedResponse();
+        resp.setId(u.getId());
+        resp.setEmail(u.getEmail());
+        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+    }
+
+    public static class ReviewerCreatedResponse {
+        private Long id;
+        private String email;
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
     }
 }
 

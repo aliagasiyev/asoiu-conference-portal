@@ -23,6 +23,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(Map.of("errors", errors));
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(NotFoundException ex) {
+        String msg = ex.getMessage();
+        if (msg == null || msg.isBlank()) msg = "Not found";
+        return ResponseEntity.status(404).body(Map.of("message", msg));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
         String msg = ex.getMessage();

@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,6 +91,7 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public PaperResponse update(Long id, PaperUpdateRequest request) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
         applyRequestToPaper(p, request.getTitle(), request.getKeywords(), request.getPaperAbstract(), request.getPaperTypeId(), request.getTopicIds());
         p.getCoAuthors().clear();
         if (request.getCoAuthors() != null) {
@@ -113,13 +115,16 @@ public class PaperServiceImpl implements PaperService {
     @Override
     @Transactional
     public void delete(Long id) {
-        paperRepository.deleteById(id);
+        PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
+        paperRepository.delete(p);
     }
 
     @Override
     @Transactional
     public PaperResponse withdraw(Long id) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
         p.setStatus(az.edu.asiouconferenceportal.common.enums.PaperStatus.WITHDRAWN);
         p.setWithdrawnAt(java.time.Instant.now());
         return toResponse(p);
@@ -129,6 +134,7 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public PaperResponse uploadPdf(Long id, MultipartFile file) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
         try {
             StoredFile sf = fileStorageService.store(file);
             p.setPdf(sf);
@@ -142,6 +148,7 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public PaperResponse uploadCameraReady(Long id, MultipartFile file) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
         try {
             StoredFile sf = fileStorageService.store(file);
             p.setCameraReadyPdf(sf);
@@ -155,6 +162,7 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public PaperResponse submit(Long id) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
         ConferenceSettings s = settingsRepository.findAll().stream().findFirst().orElse(null);
         if (s != null && !s.isSubmissionsOpen()) throw new IllegalArgumentException("Submissions are closed");
         if (p.getPdf() == null || p.getTopics().isEmpty() || p.getPaperType() == null) {
@@ -168,6 +176,7 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public PaperResponse submitCameraReady(Long id) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
         ConferenceSettings s = settingsRepository.findAll().stream().findFirst().orElse(null);
         if (s != null && !s.isCameraReadyOpen())
             throw new IllegalArgumentException("Camera-ready submissions are closed");
@@ -182,6 +191,7 @@ public class PaperServiceImpl implements PaperService {
     @Transactional(readOnly = true)
     public PaperResponse getById(Long id) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
         return toResponse(p);
     }
 
@@ -229,6 +239,7 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public PaperResponse addCoAuthor(Long paperId, CoAuthorRequest request) {
         PaperSubmission p = paperRepository.findById(paperId).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
         CoAuthor ca = new CoAuthor();
         ca.setPaper(p);
         ca.setFirstName(request.getFirstName());
@@ -247,6 +258,7 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public PaperResponse updateCoAuthor(Long paperId, Long coAuthorId, CoAuthorRequest request) {
         PaperSubmission p = paperRepository.findById(paperId).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
         CoAuthor ca = coAuthorRepository.findById(coAuthorId).orElseThrow(() -> new NotFoundException("Co-author not found"));
         if (!Objects.equals(ca.getPaper().getId(), p.getId())) throw new NotFoundException("Co-author not in paper");
         ca.setFirstName(request.getFirstName());
@@ -263,10 +275,26 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public void deleteCoAuthor(Long paperId, Long coAuthorId) {
         PaperSubmission p = paperRepository.findById(paperId).orElseThrow(() -> new NotFoundException("Paper not found"));
+        ensureAuthorOrAdmin(p);
         CoAuthor ca = coAuthorRepository.findById(coAuthorId).orElseThrow(() -> new NotFoundException("Co-author not found"));
         if (!Objects.equals(ca.getPaper().getId(), p.getId())) throw new NotFoundException("Co-author not in paper");
         p.getCoAuthors().remove(ca);
         coAuthorRepository.delete(ca);
+    }
+
+    private void ensureAuthorOrAdmin(PaperSubmission paper) {
+        if (isAdmin()) return;
+        var userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        var user = userRepository.findByEmail(userEmail).orElseThrow(() -> new NotFoundException("User not found"));
+        if (!Objects.equals(paper.getAuthor().getId(), user.getId())) {
+            throw new AccessDeniedException("Forbidden");
+        }
+    }
+
+    private boolean isAdmin() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        return auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 }
 

@@ -10,9 +10,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface PaperRepository extends JpaRepository<PaperSubmission, Long> {
     List<PaperSubmission> findAllByAuthorOrderByCreatedAtDesc(User author);
 
     Page<PaperSubmission> findAllByAuthorOrderByCreatedAtDesc(User author, Pageable pageable);
+
+    Optional<PaperSubmission> findByPdf_Id(Long fileId);
+
+    Optional<PaperSubmission> findByCameraReadyPdf_Id(Long fileId);
 }

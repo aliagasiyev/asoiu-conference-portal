@@ -2,6 +2,9 @@ package az.edu.asiouconferenceportal.controller.file;
 
 import az.edu.asiouconferenceportal.entity.file.StoredFile;
 import az.edu.asiouconferenceportal.repository.file.StoredFileRepository;
+import az.edu.asiouconferenceportal.repository.paper.PaperRepository;
+import az.edu.asiouconferenceportal.repository.paper.ReviewAssignmentRepository;
+import az.edu.asiouconferenceportal.repository.user.UserRepository;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,6 +15,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,11 +28,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class FileController {
 
 	private final StoredFileRepository storedFileRepository;
+	private final PaperRepository paperRepository;
+	private final ReviewAssignmentRepository assignmentRepository;
+	private final UserRepository userRepository;
 
 	@GetMapping("/{id}")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<Resource> download(@PathVariable Long id) throws IOException {
 		StoredFile sf = storedFileRepository.findById(id).orElseThrow();
+		if (!canCurrentUserAccessFile(sf)) {
+			return ResponseEntity.status(403).build();
+		}
 		Path path = Path.of(sf.getPath());
 		byte[] bytes = Files.readAllBytes(path);
 		var resource = new ByteArrayResource(bytes);
@@ -35,5 +46,29 @@ public class FileController {
 			.contentType(MediaType.parseMediaType(sf.getContentType()))
 			.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + sf.getFilename() + "\"")
 			.body(resource);
+	}
+
+	private boolean canCurrentUserAccessFile(StoredFile sf) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null) return false;
+		boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+		if (isAdmin) return true;
+
+		var paper = paperRepository.findByPdf_Id(sf.getId()).orElseGet(() ->
+			paperRepository.findByCameraReadyPdf_Id(sf.getId()).orElse(null)
+		);
+		if (paper == null) {
+			return false;
+		}
+
+		var currentEmail = auth.getName();
+		var user = userRepository.findByEmail(currentEmail).orElse(null);
+		if (user == null) return false;
+
+		if (paper.getAuthor() != null && paper.getAuthor().getId().equals(user.getId())) {
+			return true;
+		}
+
+		return assignmentRepository.findByPaper_IdAndReviewer(paper.getId(), user).isPresent();
 	}
 }

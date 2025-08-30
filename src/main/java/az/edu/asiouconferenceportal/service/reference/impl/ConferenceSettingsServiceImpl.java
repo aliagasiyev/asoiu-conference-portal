@@ -17,9 +17,12 @@ public class ConferenceSettingsServiceImpl implements ConferenceSettingsService 
 	private final ConferenceSettingsRepository repository;
 
 	@Override
-	@Transactional(readOnly = true)
+	@Transactional
 	public ConferenceSettingsResponse get() {
-		ConferenceSettings s = repository.findAll().stream().findFirst().orElseGet(() -> repository.save(new ConferenceSettings()));
+		ConferenceSettings s = repository.findAll().stream().findFirst().orElse(null);
+		if (s == null) {
+			s = repository.save(new ConferenceSettings());
+		}
 		return toResponse(s);
 	}
 

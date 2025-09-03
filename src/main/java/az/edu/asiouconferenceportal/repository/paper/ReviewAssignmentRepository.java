@@ -14,6 +14,7 @@ public interface ReviewAssignmentRepository extends JpaRepository<ReviewAssignme
     List<ReviewAssignment> findAllByDueAtBeforeAndCompletedAtIsNull(Instant dueBefore);
     Optional<ReviewAssignment> findByIdAndReviewer(Long id, User reviewer);
     Optional<ReviewAssignment> findByPaper_IdAndReviewer(Long paperId, User reviewer);
+    boolean existsByPaper_Id(Long paperId);
 }
 
 

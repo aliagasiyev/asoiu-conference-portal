@@ -10,6 +10,7 @@ import az.edu.asiouconferenceportal.entity.reference.ConferenceSettings;
 import az.edu.asiouconferenceportal.exception.NotFoundException;
 import az.edu.asiouconferenceportal.repository.paper.CoAuthorRepository;
 import az.edu.asiouconferenceportal.repository.paper.PaperRepository;
+import az.edu.asiouconferenceportal.repository.paper.ReviewAssignmentRepository;
 import az.edu.asiouconferenceportal.repository.reference.PaperTypeRepository;
 import az.edu.asiouconferenceportal.repository.reference.TopicRepository;
 import az.edu.asiouconferenceportal.repository.reference.ConferenceSettingsRepository;
@@ -41,6 +42,7 @@ public class PaperServiceImpl implements PaperService {
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
     private final ConferenceSettingsRepository settingsRepository;
+    private final ReviewAssignmentRepository assignmentRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -116,7 +118,11 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public void delete(Long id) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
-        ensureAuthorOrAdmin(p);
+        ensureAuthorOnly(p);
+        // Prevent deletion if there are reviewer assignments referencing this paper
+        if (assignmentRepository.existsByPaper_Id(p.getId())) {
+            throw new IllegalStateException("Cannot delete paper: it has reviewer assignments");
+        }
         paperRepository.delete(p);
     }
 
@@ -124,7 +130,10 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public PaperResponse withdraw(Long id) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
-        ensureAuthorOrAdmin(p);
+        // Authors are no longer allowed to change status directly
+        if (!isAdmin()) {
+            throw new AccessDeniedException("You are not allowed to change paper status");
+        }
         p.setStatus(az.edu.asiouconferenceportal.common.enums.PaperStatus.WITHDRAWN);
         p.setWithdrawnAt(java.time.Instant.now());
         return toResponse(p);
@@ -162,7 +171,16 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public PaperResponse submit(Long id) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
-        ensureAuthorOrAdmin(p);
+        // Authors are no longer allowed to change status directly
+        if (!isAdmin()) {
+            throw new AccessDeniedException("You are not allowed to change paper status");
+        }
+        // Only allow submission from DRAFT or REVISIONS_REQUIRED states.
+        var currentStatus = p.getStatus();
+        if (currentStatus != az.edu.asiouconferenceportal.common.enums.PaperStatus.DRAFT
+                && currentStatus != az.edu.asiouconferenceportal.common.enums.PaperStatus.REVISIONS_REQUIRED) {
+            throw new IllegalStateException("Paper cannot be submitted in its current status");
+        }
         ConferenceSettings s = settingsRepository.findAll().stream().findFirst().orElse(null);
         if (s != null && !s.isSubmissionsOpen()) throw new IllegalArgumentException("Submissions are closed");
         if (p.getPdf() == null || p.getTopics().isEmpty() || p.getPaperType() == null) {
@@ -176,7 +194,10 @@ public class PaperServiceImpl implements PaperService {
     @Transactional
     public PaperResponse submitCameraReady(Long id) {
         PaperSubmission p = paperRepository.findById(id).orElseThrow(() -> new NotFoundException("Paper not found"));
-        ensureAuthorOrAdmin(p);
+        // Authors are no longer allowed to change status directly
+        if (!isAdmin()) {
+            throw new AccessDeniedException("You are not allowed to change paper status");
+        }
         ConferenceSettings s = settingsRepository.findAll().stream().findFirst().orElse(null);
         if (s != null && !s.isCameraReadyOpen())
             throw new IllegalArgumentException("Camera-ready submissions are closed");
@@ -295,6 +316,16 @@ public class PaperServiceImpl implements PaperService {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) return false;
         return auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+    }
+
+    private void ensureAuthorOnly(PaperSubmission paper) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) throw new AccessDeniedException("Forbidden");
+        var userEmail = auth.getName();
+        var user = userRepository.findByEmail(userEmail).orElseThrow(() -> new NotFoundException("User not found"));
+        if (!Objects.equals(paper.getAuthor().getId(), user.getId())) {
+            throw new AccessDeniedException("Only the author can delete this paper");
+        }
     }
 }
 

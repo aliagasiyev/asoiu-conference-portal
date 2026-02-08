@@ -1,0 +1,18 @@
+package az.edu.asiouconferenceportal.common.enums;
+
+public enum ActivityAction {
+    PAPER_CREATED,
+    PDF_UPLOADED,
+    PAPER_SUBMITTED,
+    PAPER_WITHDRAWN,
+    CAMERA_READY_UPLOADED,
+    CAMERA_READY_SUBMITTED,
+    TECH_CHECK_PASSED,
+    TECH_CHECK_REJECTED,
+    REVIEW_ASSIGNED,
+    REVIEW_ACCEPTED,
+    REVIEW_SUBMITTED,
+    FINAL_DECISION_SET
+}
+
+

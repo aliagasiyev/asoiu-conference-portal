@@ -8,14 +8,19 @@ import lombok.Data;
 @Data
 public class PaperCreateRequest {
 	@NotBlank
+	@jakarta.validation.constraints.Size(max = 255)
 	private String title;
 	@NotBlank
+	@jakarta.validation.constraints.Size(max = 255)
 	private String keywords;
 	@NotBlank
+	@jakarta.validation.constraints.Size(max = 4000)
 	private String paperAbstract;
 	@NotNull
 	private Long paperTypeId;
 	@NotNull
+	@jakarta.validation.constraints.NotEmpty
 	private List<Long> topicIds;
+	@jakarta.validation.Valid
 	private List<CoAuthorRequest> coAuthors;
 }

@@ -77,13 +77,13 @@ public class PaperController {
 	}
 
 	@PostMapping("/{id}/co-authors")
-	public ResponseEntity<PaperResponse> addCoAuthor(@PathVariable Long id, @RequestBody CoAuthorRequest req) {
+	public ResponseEntity<PaperResponse> addCoAuthor(@PathVariable Long id, @Valid @RequestBody CoAuthorRequest req) {
 		return ResponseEntity.ok(paperService.addCoAuthor(id, req));
 	}
 
 	@PutMapping("/{id}/co-authors/{coAuthorId}")
 	public ResponseEntity<PaperResponse> updateCoAuthor(@PathVariable Long id, @PathVariable Long coAuthorId,
-														  @RequestBody CoAuthorRequest req) {
+														  @Valid @RequestBody CoAuthorRequest req) {
 		return ResponseEntity.ok(paperService.updateCoAuthor(id, coAuthorId, req));
 	}
 

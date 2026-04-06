@@ -19,8 +19,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +31,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final PaperReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final ActivityService activityService;
+    private final az.edu.asiouconferenceportal.security.SecurityUtils securityUtils;
 
     @Override
     @Transactional
@@ -40,8 +39,8 @@ public class ReviewServiceImpl implements ReviewService {
         var paper = paperRepository.findById(paperId).orElseThrow(() -> new NotFoundException("Paper not found"));
         var reviewer = userRepository.findByEmail(request.getReviewerEmail())
             .orElseThrow(() -> new NotFoundException("Reviewer not found for email: " + request.getReviewerEmail()));
-        // ensure reviewer has REVIEWER role
-        boolean isReviewer = reviewer.getRoles().stream().anyMatch(r -> "REVIEWER".equalsIgnoreCase(r.getName()));
+
+            boolean isReviewer = reviewer.getRoles().stream().anyMatch(r -> "REVIEWER".equalsIgnoreCase(r.getName()));
         if (!isReviewer) {
             throw new NotFoundException("User is not a reviewer: " + request.getReviewerEmail());
         }
@@ -58,16 +57,14 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public List<AssignmentResponse> listAssignmentsForMe() {
-        var current = currentUserEmail();
-        var user = userRepository.findByEmail(current).orElseThrow(() -> new NotFoundException("User not found"));
+        var user = securityUtils.getCurrentUser();
         return assignmentRepository.findAllByReviewerOrderByDueAtAsc(user).stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public AssignmentResponse acceptAssignment(Long assignmentId) {
-        var current = currentUserEmail();
-        var user = userRepository.findByEmail(current).orElseThrow(() -> new NotFoundException("User not found"));
+        var user = securityUtils.getCurrentUser();
         var assignment = assignmentRepository.findByIdAndReviewer(assignmentId, user)
             .orElseThrow(() -> new NotFoundException("Assignment not found"));
         if (assignment.getAcceptedAt() == null) {
@@ -81,8 +78,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void submitReview(Long assignmentId, ReviewSubmitRequest request) {
-        var current = currentUserEmail();
-        var user = userRepository.findByEmail(current).orElseThrow(() -> new NotFoundException("User not found"));
+        var user = securityUtils.getCurrentUser();
         var assignment = assignmentRepository.findByIdAndReviewer(assignmentId, user)
             .orElseThrow(() -> new NotFoundException("Assignment not found"));
         var review = reviewRepository.findByAssignment(assignment).orElseGet(PaperReview::new);
@@ -107,8 +103,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public PaperResponse getAssignedPaper(Long assignmentId) {
-        var current = currentUserEmail();
-        var user = userRepository.findByEmail(current).orElseThrow(() -> new NotFoundException("User not found"));
+        var user = securityUtils.getCurrentUser();
         var assignment = assignmentRepository.findByIdAndReviewer(assignmentId, user)
             .orElseThrow(() -> new NotFoundException("Assignment not found"));
         return toPaperResponse(assignment.getPaper());
@@ -116,8 +111,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public List<PaperResponse> listAssignedPapers() {
-        var current = currentUserEmail();
-        var user = userRepository.findByEmail(current).orElseThrow(() -> new NotFoundException("User not found"));
+        var user = securityUtils.getCurrentUser();
         return assignmentRepository.findAllByReviewerOrderByDueAtAsc(user).stream()
             .map(a -> toPaperResponse(a.getPaper()))
             .collect(Collectors.toList());
@@ -125,8 +119,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public PaperResponse getAssignedPaperByPaperId(Long paperId) {
-        var current = currentUserEmail();
-        var user = userRepository.findByEmail(current).orElseThrow(() -> new NotFoundException("User not found"));
+        var user = securityUtils.getCurrentUser();
         var assignment = assignmentRepository.findByPaper_IdAndReviewer(paperId, user)
             .orElseThrow(() -> new NotFoundException("Assignment for paper not found"));
         return toPaperResponse(assignment.getPaper());
@@ -148,11 +141,6 @@ public class ReviewServiceImpl implements ReviewService {
             resp.setDueSoon(false);
         }
         return resp;
-    }
-
-    private String currentUserEmail() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth.getName();
     }
 
     private PaperResponse toPaperResponse(az.edu.asiouconferenceportal.entity.paper.PaperSubmission p) {

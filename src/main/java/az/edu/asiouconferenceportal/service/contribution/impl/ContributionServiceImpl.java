@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +21,12 @@ public class ContributionServiceImpl implements ContributionService {
 
     private final ContributionRepository repository;
     private final UserRepository userRepository;
+    private final az.edu.asiouconferenceportal.security.SecurityUtils securityUtils;
 
     @Override
     @Transactional(readOnly = true)
     public List<ContributionResponse> myContributions() {
-        var email = SecurityContextHolder.getContext().getAuthentication().getName();
-        var user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+        var user = securityUtils.getCurrentUser();
         return repository.findAllByUserOrderByCreatedAtDesc(user).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -36,8 +35,7 @@ public class ContributionServiceImpl implements ContributionService {
     @Override
     @Transactional(readOnly = true)
     public List<ContributionResponse> myContributions(int page, int size) {
-        var email = SecurityContextHolder.getContext().getAuthentication().getName();
-        var user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+        var user = securityUtils.getCurrentUser();
         return repository.findAllByUserOrderByCreatedAtDesc(user, PageRequest.of(page, size))
                 .map(this::toResponse)
                 .getContent();
@@ -46,8 +44,7 @@ public class ContributionServiceImpl implements ContributionService {
     @Override
     @Transactional
     public ContributionResponse create(ContributionCreateRequest request) {
-        var email = SecurityContextHolder.getContext().getAuthentication().getName();
-        var user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+        var user = securityUtils.getCurrentUser();
         Contribution c = new Contribution();
         c.setUser(user);
         apply(c, request.getRoles(), request.getTitle(), request.getKeywords(), request.getDescription(), request.getBio(), request.getSpeechType(), request.getTimeScope(), request.getAudience(), request.getPreviousTalkUrl());
@@ -58,7 +55,7 @@ public class ContributionServiceImpl implements ContributionService {
     @Transactional
     public ContributionResponse update(Long id, ContributionUpdateRequest request) {
         Contribution c = repository.findById(id).orElseThrow(() -> new NotFoundException("Contribution not found"));
-        ensureOwnership(c);
+        securityUtils.verifyOwnershipOrAdmin(c.getUser().getId());
         apply(c, request.getRoles(), request.getTitle(), request.getKeywords(), request.getDescription(), request.getBio(), request.getSpeechType(), request.getTimeScope(), request.getAudience(), request.getPreviousTalkUrl());
         return toResponse(c);
     }
@@ -67,17 +64,8 @@ public class ContributionServiceImpl implements ContributionService {
     @Transactional
     public void delete(Long id) {
         Contribution c = repository.findById(id).orElseThrow(() -> new NotFoundException("Contribution not found"));
-        ensureOwnership(c);
+        securityUtils.verifyOwnershipOrAdmin(c.getUser().getId());
         repository.delete(c);
-    }
-
-    private void ensureOwnership(Contribution c) {
-        var email = SecurityContextHolder.getContext().getAuthentication().getName();
-        var user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-        if (!c.getUser().getId().equals(user.getId())) {
-            throw new org.springframework.security.access.AccessDeniedException("You do not own this contribution");
-        }
     }
 
     private void apply(Contribution c, java.util.Set<az.edu.asiouconferenceportal.common.enums.ContributionRole> roles, String title, String keywords, String description, String bio, az.edu.asiouconferenceportal.common.enums.SpeechType speechType, az.edu.asiouconferenceportal.common.enums.TimeScope timeScope, String audience, String previousTalkUrl) {

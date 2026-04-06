@@ -39,7 +39,7 @@ public class ContributionController {
 	public ResponseEntity<ContributionResponse> get(@PathVariable Long id) {
 		return ResponseEntity.ok(
 			contributionService.myContributions().stream().filter(c -> c.getId().equals(id)).findFirst()
-				.orElseThrow(() -> new RuntimeException("Not found"))
+				.orElseThrow(() -> new az.edu.asiouconferenceportal.exception.NotFoundException("Contribution not found"))
 		);
 	}
 

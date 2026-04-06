@@ -74,19 +74,20 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void bootstrapAdmin(Role adminRole) {
-        if (!userRepository.existsByEmail(adminEmail)) {
-            log.info("Admin user not found. Bootstrapping admin: {}", adminEmail);
-            User admin = new User();
-            admin.setEmail(adminEmail);
-            admin.setPassword(passwordEncoder.encode(adminPassword));
-            admin.setFirstName(adminFirstName);
-            admin.setLastName(adminLastName);
-            admin.setRoles(Set.of(adminRole));
-            userRepository.save(admin);
-            log.info("Admin user successfully bootstrapped.");
-        } else {
-            log.info("Admin user already exists. Skipping bootstrap.");
-        }
+        User admin = userRepository.findByEmail(adminEmail).orElseGet(() -> {
+            log.info("Admin user not found. Creating new admin: {}", adminEmail);
+            User u = new User();
+            u.setEmail(adminEmail);
+            return u;
+        });
+
+        log.info("Updating/Setting admin password and roles for: {}", adminEmail);
+        admin.setPassword(passwordEncoder.encode(adminPassword));
+        admin.setFirstName(adminFirstName);
+        admin.setLastName(adminLastName);
+        admin.getRoles().add(adminRole);
+        userRepository.save(admin);
+        log.info("Admin user successfully bootstrapped/updated.");
     }
 
     private Role ensureRole(String name) {

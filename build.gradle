@@ -37,7 +37,10 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
+<<<<<<< HEAD
     runtimeOnly 'com.h2database:h2'
+=======
+>>>>>>> dde76761a2f23f215da57060e836531cdd579f7c
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.h2database:h2'

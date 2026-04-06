@@ -58,6 +58,7 @@ public class ContributionServiceImpl implements ContributionService {
     @Transactional
     public ContributionResponse update(Long id, ContributionUpdateRequest request) {
         Contribution c = repository.findById(id).orElseThrow(() -> new NotFoundException("Contribution not found"));
+        ensureOwnership(c);
         apply(c, request.getRoles(), request.getTitle(), request.getKeywords(), request.getDescription(), request.getBio(), request.getSpeechType(), request.getTimeScope(), request.getAudience(), request.getPreviousTalkUrl());
         return toResponse(c);
     }
@@ -65,7 +66,18 @@ public class ContributionServiceImpl implements ContributionService {
     @Override
     @Transactional
     public void delete(Long id) {
-        repository.deleteById(id);
+        Contribution c = repository.findById(id).orElseThrow(() -> new NotFoundException("Contribution not found"));
+        ensureOwnership(c);
+        repository.delete(c);
+    }
+
+    private void ensureOwnership(Contribution c) {
+        var email = SecurityContextHolder.getContext().getAuthentication().getName();
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        if (!c.getUser().getId().equals(user.getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not own this contribution");
+        }
     }
 
     private void apply(Contribution c, java.util.Set<az.edu.asiouconferenceportal.common.enums.ContributionRole> roles, String title, String keywords, String description, String bio, az.edu.asiouconferenceportal.common.enums.SpeechType speechType, az.edu.asiouconferenceportal.common.enums.TimeScope timeScope, String audience, String previousTalkUrl) {

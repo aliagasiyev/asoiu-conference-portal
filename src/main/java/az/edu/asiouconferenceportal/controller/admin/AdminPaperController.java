@@ -27,34 +27,35 @@ public class AdminPaperController {
     }
 
     @GetMapping("/{id}")
-    public PaperResponse get(@PathVariable Long id) {
+    public PaperResponse get(@PathVariable("id") Long id) {
         return paperService.getById(id);
     }
 
-  @PostMapping("/{id}/technical-check")
-@ResponseStatus(HttpStatus.NO_CONTENT)
-public void technicalCheck(
-    @PathVariable("id") Long id,
-    @RequestParam(name = "passed", defaultValue = "true") boolean passed
-) {
-    var p = paperRepository.findById(id).orElseThrow();
-    p.setStatus(passed ? PaperStatus.UNDER_TECHNICAL_CHECK : PaperStatus.REJECTED);
-    paperRepository.save(p);
-}
+    @PostMapping("/{id}/technical-check")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void technicalCheck(
+            @PathVariable("id") Long id,
+            @RequestParam(name = "passed", defaultValue = "true") boolean passed
+    ) {
+        var p = paperRepository.findById(id).orElseThrow();
+        p.setStatus(passed ? PaperStatus.UNDER_TECHNICAL_CHECK : PaperStatus.REJECTED);
+        paperRepository.save(p);
+    }
 
     @PostMapping("/{id}/final-decision")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void finalDecision(@PathVariable Long id, @RequestBody FinalDecisionBody body) {
+    public void finalDecision(
+            @PathVariable("id") Long id,
+            @RequestBody FinalDecisionBody body
+    ) {
         var p = paperRepository.findById(id).orElseThrow();
-        p.setStatus(body.status);
+        p.setStatus(body.getStatus());
         paperRepository.save(p);
     }
 
     @Data
     public static class FinalDecisionBody {
         @NotNull
-        private PaperStatus status; // ACCEPTED / REJECTED / REVISIONS_REQUIRED
+        private PaperStatus status;
     }
 }
-
-

@@ -7,6 +7,7 @@ import az.edu.asiouconferenceportal.repository.user.RoleRepository;
 import az.edu.asiouconferenceportal.repository.user.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,13 +51,10 @@ public class UserAdminController {
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
+    @Data
     public static class ReviewerCreatedResponse {
         private Long id;
         private String email;
-        public Long getId() { return id; }
-        public void setId(Long id) { this.id = id; }
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
     }
 }
 

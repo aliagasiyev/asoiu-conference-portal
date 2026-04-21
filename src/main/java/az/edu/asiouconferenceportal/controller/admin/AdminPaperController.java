@@ -31,13 +31,16 @@ public class AdminPaperController {
         return paperService.getById(id);
     }
 
-    @PostMapping("/{id}/technical-check")
-    public PaperResponse technicalCheck(@PathVariable Long id, @RequestParam(defaultValue = "true") boolean passed) {
-        var p = paperRepository.findById(id).orElseThrow();
-        p.setStatus(passed ? PaperStatus.UNDER_TECHNICAL_CHECK : PaperStatus.REJECTED);
-        paperRepository.save(p);
-        return paperService.getById(id);
-    }
+  @PostMapping("/{id}/technical-check")
+@ResponseStatus(HttpStatus.NO_CONTENT)
+public void technicalCheck(
+    @PathVariable("id") Long id,
+    @RequestParam(name = "passed", defaultValue = "true") boolean passed
+) {
+    var p = paperRepository.findById(id).orElseThrow();
+    p.setStatus(passed ? PaperStatus.UNDER_TECHNICAL_CHECK : PaperStatus.REJECTED);
+    paperRepository.save(p);
+}
 
     @PostMapping("/{id}/final-decision")
     @ResponseStatus(HttpStatus.NO_CONTENT)

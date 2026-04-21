@@ -1,6 +1,11 @@
 package az.edu.asiouconferenceportal.controller.admin;
 
-import az.edu.asiouconferenceportal.dto.reference.*;
+import az.edu.asiouconferenceportal.dto.reference.ConferenceSettingsRequest;
+import az.edu.asiouconferenceportal.dto.reference.ConferenceSettingsResponse;
+import az.edu.asiouconferenceportal.dto.reference.PaperTypeRequest;
+import az.edu.asiouconferenceportal.dto.reference.PaperTypeResponse;
+import az.edu.asiouconferenceportal.dto.reference.TopicRequest;
+import az.edu.asiouconferenceportal.dto.reference.TopicResponse;
 import az.edu.asiouconferenceportal.service.reference.ConferenceSettingsService;
 import az.edu.asiouconferenceportal.service.reference.PaperTypeService;
 import az.edu.asiouconferenceportal.service.reference.TopicService;
@@ -17,41 +22,69 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminReferenceController {
 
-	private final TopicService topicService;
-	private final PaperTypeService paperTypeService;
-	private final ConferenceSettingsService settingsService;
+    private final TopicService topicService;
+    private final PaperTypeService paperTypeService;
+    private final ConferenceSettingsService settingsService;
 
-	@GetMapping("/topics")
-	public List<TopicResponse> listTopics() { return topicService.listActive(); }
+    @GetMapping("/topics")
+    public List<TopicResponse> listTopics() {
+        return topicService.listActive();
+    }
 
-	@PostMapping("/topics")
-	@ResponseStatus(HttpStatus.CREATED)
-	public TopicResponse createTopic(@Validated @RequestBody TopicRequest request) { return topicService.create(request); }
+    @PostMapping("/topics")
+    @ResponseStatus(HttpStatus.CREATED)
+    public TopicResponse createTopic(@Validated @RequestBody TopicRequest request) {
+        return topicService.create(request);
+    }
 
-	@PutMapping("/topics/{id}")
-	public TopicResponse updateTopic(@PathVariable Long id, @Validated @RequestBody TopicRequest request) { return topicService.update(id, request); }
+    @PutMapping("/topics/{id}")
+    public TopicResponse updateTopic(
+            @PathVariable("id") Long id,
+            @Validated @RequestBody TopicRequest request
+    ) {
+        return topicService.update(id, request);
+    }
 
-	@DeleteMapping("/topics/{id}")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void deleteTopic(@PathVariable Long id) { topicService.delete(id); }
+    @DeleteMapping("/topics/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTopic(@PathVariable("id") Long id) {
+        topicService.delete(id);
+    }
 
-	@GetMapping("/paper-types")
-	public List<PaperTypeResponse> listTypes() { return paperTypeService.listActive(); }
+    @GetMapping("/paper-types")
+    public List<PaperTypeResponse> listTypes() {
+        return paperTypeService.listActive();
+    }
 
-	@PostMapping("/paper-types")
-	@ResponseStatus(HttpStatus.CREATED)
-	public PaperTypeResponse createType(@Validated @RequestBody PaperTypeRequest request) { return paperTypeService.create(request); }
+    @PostMapping("/paper-types")
+    @ResponseStatus(HttpStatus.CREATED)
+    public PaperTypeResponse createType(@Validated @RequestBody PaperTypeRequest request) {
+        return paperTypeService.create(request);
+    }
 
-	@PutMapping("/paper-types/{id}")
-	public PaperTypeResponse updateType(@PathVariable Long id, @Validated @RequestBody PaperTypeRequest request) { return paperTypeService.update(id, request); }
+    @PutMapping("/paper-types/{id}")
+    public PaperTypeResponse updateType(
+            @PathVariable("id") Long id,
+            @Validated @RequestBody PaperTypeRequest request
+    ) {
+        return paperTypeService.update(id, request);
+    }
 
-	@DeleteMapping("/paper-types/{id}")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void deleteType(@PathVariable Long id) { paperTypeService.delete(id); }
+    @DeleteMapping("/paper-types/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteType(@PathVariable("id") Long id) {
+        paperTypeService.delete(id);
+    }
 
-	@GetMapping("/settings")
-	public ConferenceSettingsResponse getSettings() { return settingsService.get(); }
+    @GetMapping("/settings")
+    public ConferenceSettingsResponse getSettings() {
+        return settingsService.get();
+    }
 
-	@PutMapping("/settings")
-	public ConferenceSettingsResponse updateSettings(@Validated @RequestBody ConferenceSettingsRequest request) { return settingsService.update(request); }
+    @PutMapping("/settings")
+    public ConferenceSettingsResponse updateSettings(
+            @Validated @RequestBody ConferenceSettingsRequest request
+    ) {
+        return settingsService.update(request);
+    }
 }

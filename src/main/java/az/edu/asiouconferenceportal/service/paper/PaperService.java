@@ -14,6 +14,8 @@ public interface PaperService {
 
     List<PaperResponse> myPapers(int page, int size);
 
+    List<PaperResponse> listAll();
+
     PaperResponse getById(Long id);
 
     PaperResponse create(PaperCreateRequest request);

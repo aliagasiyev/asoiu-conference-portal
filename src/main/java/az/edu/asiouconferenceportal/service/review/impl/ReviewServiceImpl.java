@@ -15,6 +15,7 @@ import az.edu.asiouconferenceportal.repository.paper.ReviewAssignmentRepository;
 import az.edu.asiouconferenceportal.repository.user.UserRepository;
 import az.edu.asiouconferenceportal.service.review.ReviewService;
 import az.edu.asiouconferenceportal.dto.paper.PaperResponse;
+import org.springframework.security.access.AccessDeniedException;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -94,9 +95,10 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public List<AssignmentResponse> listAssignmentsByPaper(Long paperId) {
-        var paper = paperRepository.findById(paperId).orElseThrow(() -> new NotFoundException("Paper not found"));
-        return paper.getId() == null ? List.of() : assignmentRepository.findAll().stream()
-            .filter(a -> a.getPaper().getId().equals(paperId))
+        if (!paperRepository.existsById(paperId)) {
+            throw new NotFoundException("Paper not found");
+        }
+        return assignmentRepository.findAllByPaper_Id(paperId).stream()
             .map(this::toResponse)
             .collect(Collectors.toList());
     }
@@ -123,6 +125,20 @@ public class ReviewServiceImpl implements ReviewService {
         var assignment = assignmentRepository.findByPaper_IdAndReviewer(paperId, user)
             .orElseThrow(() -> new NotFoundException("Assignment for paper not found"));
         return toPaperResponse(assignment.getPaper());
+    }
+
+    @Override
+    @Transactional
+    public void submitAdminFeedback(Long reviewId, String feedback) {
+        if (!securityUtils.isAdmin()) {
+            throw new AccessDeniedException("Only admins can submit feedback");
+        }
+        var review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new NotFoundException("Review not found"));
+        review.setAdminFeedback(feedback);
+        review.setAdminFeedbackAt(Instant.now());
+        reviewRepository.save(review);
+        activityService.log(ActivityAction.REVIEW_FEEDBACK_ADDED, "REVIEW", review.getId(), "Feedback added by admin");
     }
 
     private AssignmentResponse toResponse(ReviewAssignment assignment) {

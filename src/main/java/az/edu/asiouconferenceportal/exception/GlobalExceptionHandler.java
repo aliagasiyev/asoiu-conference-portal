@@ -4,6 +4,7 @@ import az.edu.asiouconferenceportal.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -17,10 +18,12 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Hidden
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        log.error("Validation failed for {}: {}", request.getRequestURI(), ex.getBindingResult().getAllErrors());
         var errors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(
                         e -> e.getField(),

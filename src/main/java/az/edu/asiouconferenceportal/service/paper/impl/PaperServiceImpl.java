@@ -62,6 +62,17 @@ public class PaperServiceImpl implements PaperService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<PaperResponse> listAll() {
+        if (!securityUtils.isAdmin()) {
+            throw new AccessDeniedException("Only admins can list all papers");
+        }
+        return paperRepository.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public PaperResponse create(PaperCreateRequest request) {
         var user = securityUtils.getCurrentUser();

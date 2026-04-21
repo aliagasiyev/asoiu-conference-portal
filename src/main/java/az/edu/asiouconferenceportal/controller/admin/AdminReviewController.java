@@ -47,8 +47,16 @@ public class AdminReviewController {
             x.setId(r.getId());
             x.setDecision(r.getDecision());
             x.setComments(r.getComments());
+            x.setAdminFeedback(r.getAdminFeedback());
+            x.setAdminFeedbackAt(r.getAdminFeedbackAt());
             return x;
         }).toList();
+    }
+
+    @PostMapping("/reviews/{reviewId}/feedback")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void submitFeedback(@PathVariable Long reviewId, @RequestBody String feedback) {
+        reviewService.submitAdminFeedback(reviewId, feedback);
     }
 }
 

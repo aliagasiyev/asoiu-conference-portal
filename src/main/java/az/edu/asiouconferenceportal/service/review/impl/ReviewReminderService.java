@@ -20,8 +20,7 @@ public class ReviewReminderService {
     public void sendReminders() {
         Instant now = Instant.now();
         Instant threshold = now.plus(Duration.ofDays(2));
-        assignmentRepository.findAll().stream()
-            .filter(a -> a.getCompletedAt() == null && a.getDueAt() != null && a.getDueAt().isBefore(threshold))
+        assignmentRepository.findAllByDueAtBeforeAndCompletedAtIsNull(threshold)
             .forEach(a -> {
                 // For now, just log; integrate email/notification later
                 log.warn("Assignment {} for reviewer {} due soon at {}", a.getId(), a.getReviewer().getEmail(), a.getDueAt());

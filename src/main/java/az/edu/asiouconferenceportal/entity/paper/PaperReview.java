@@ -27,6 +27,12 @@ public class PaperReview extends BaseEntity {
 
     @Column(length = 4000)
     private String comments;
+
+    @Column(name = "admin_feedback", length = 4000)
+    private String adminFeedback;
+
+    @Column(name = "admin_feedback_at")
+    private java.time.Instant adminFeedbackAt;
 }
 
 

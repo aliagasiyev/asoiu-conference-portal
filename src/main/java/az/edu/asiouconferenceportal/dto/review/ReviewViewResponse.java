@@ -8,6 +8,8 @@ public class ReviewViewResponse {
     private Long id;
     private ReviewDecision decision;
     private String comments;
+    private String adminFeedback;
+    private java.time.Instant adminFeedbackAt;
 }
 
 

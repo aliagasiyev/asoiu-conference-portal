@@ -23,7 +23,7 @@ public class AdminPaperController {
 
     @GetMapping
     public List<PaperResponse> listAll() {
-        return paperRepository.findAll().stream().map(p -> paperService.getById(p.getId())).toList();
+        return paperService.listAll();
     }
 
     @GetMapping("/{id}")

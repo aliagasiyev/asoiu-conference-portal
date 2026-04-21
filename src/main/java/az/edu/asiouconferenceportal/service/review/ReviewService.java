@@ -15,6 +15,8 @@ public interface ReviewService {
     PaperResponse getAssignedPaper(Long assignmentId);
     List<PaperResponse> listAssignedPapers();
     PaperResponse getAssignedPaperByPaperId(Long paperId);
+
+    void submitAdminFeedback(Long reviewId, String feedback);
 }
 
 

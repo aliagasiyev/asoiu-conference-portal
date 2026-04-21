@@ -28,10 +28,10 @@ public class DataInitializer implements ApplicationRunner {
     @Value("${app.bootstrap.admin.enabled:false}")
     private boolean bootstrapEnabled;
 
-    @Value("${app.bootstrap.admin.email}")
+    @Value("${app.bootstrap.admin.email:}")
     private String adminEmail;
 
-    @Value("${app.bootstrap.admin.password}")
+    @Value("${app.bootstrap.admin.password:}")
     private String adminPassword;
 
     @Value("${app.bootstrap.admin.firstName}")
@@ -45,10 +45,10 @@ public class DataInitializer implements ApplicationRunner {
         log.info("Checking bootstrap configuration. Enabled: {}", bootstrapEnabled);
         if (bootstrapEnabled) {
             if (adminEmail == null || adminEmail.isBlank() || adminEmail.contains("placeholder")) {
-                throw new IllegalStateException("Bootstrap admin email (BOOTSTRAP_ADMIN_EMAIL) must be provided when enabled and cannot be the placeholder");
+                throw new IllegalStateException("Bootstrap admin email must be provided when enabled");
             }
             if (adminPassword == null || adminPassword.isBlank() || adminPassword.contains("placeholder")) {
-                throw new IllegalStateException("Bootstrap admin password (BOOTSTRAP_ADMIN_PASSWORD) must be provided when enabled and cannot be the placeholder");
+                throw new IllegalStateException("Bootstrap admin password must be provided when enabled");
             }
         }
     }
@@ -74,20 +74,27 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void bootstrapAdmin(Role adminRole) {
-        User admin = userRepository.findByEmail(adminEmail).orElseGet(() -> {
+        User admin = userRepository.findByEmail(adminEmail).orElse(null);
+        if (admin == null) {
             log.info("Admin user not found. Creating new admin: {}", adminEmail);
-            User u = new User();
-            u.setEmail(adminEmail);
-            return u;
-        });
-
-        log.info("Updating/Setting admin password and roles for: {}", adminEmail);
-        admin.setPassword(passwordEncoder.encode(adminPassword));
-        admin.setFirstName(adminFirstName);
-        admin.setLastName(adminLastName);
-        admin.getRoles().add(adminRole);
-        userRepository.save(admin);
-        log.info("Admin user successfully bootstrapped/updated.");
+            admin = new User();
+            admin.setEmail(adminEmail);
+            admin.setPassword(passwordEncoder.encode(adminPassword));
+            admin.setFirstName(adminFirstName);
+            admin.setLastName(adminLastName);
+            admin.getRoles().add(adminRole);
+            userRepository.save(admin);
+            log.info("Admin user successfully bootstrapped.");
+        } else {
+            log.info("Admin user already exists. Checking roles...");
+            if (!admin.getRoles().contains(adminRole)) {
+                 admin.getRoles().add(adminRole);
+                 userRepository.save(admin);
+                 log.info("Added ADMIN role to existing admin user.");
+            } else {
+                 log.info("Admin user already has ADMIN role. No action taken.");
+            }
+        }
     }
 
     private Role ensureRole(String name) {

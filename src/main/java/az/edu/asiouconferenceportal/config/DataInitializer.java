@@ -4,7 +4,6 @@ import az.edu.asiouconferenceportal.entity.user.Role;
 import az.edu.asiouconferenceportal.entity.user.User;
 import az.edu.asiouconferenceportal.repository.user.RoleRepository;
 import az.edu.asiouconferenceportal.repository.user.UserRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,8 +12,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -34,72 +31,75 @@ public class DataInitializer implements ApplicationRunner {
     @Value("${app.bootstrap.admin.password:}")
     private String adminPassword;
 
-    @Value("${app.bootstrap.admin.firstName}")
+    @Value("${app.bootstrap.admin.firstName:System}")
     private String adminFirstName;
 
-    @Value("${app.bootstrap.admin.lastName}")
+    @Value("${app.bootstrap.admin.lastName:Admin}")
     private String adminLastName;
-
-    @PostConstruct
-    public void validate() {
-        log.info("Checking bootstrap configuration. Enabled: {}", bootstrapEnabled);
-        if (bootstrapEnabled) {
-            if (adminEmail == null || adminEmail.isBlank() || adminEmail.contains("placeholder")) {
-                throw new IllegalStateException("Bootstrap admin email must be provided when enabled");
-            }
-            if (adminPassword == null || adminPassword.isBlank() || adminPassword.contains("placeholder")) {
-                throw new IllegalStateException("Bootstrap admin password must be provided when enabled");
-            }
-        }
-    }
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        log.info("Starting data initialization process (Bootstrap Enabled: {})", bootstrapEnabled);
-        
-        // Ensure core roles exist
+        log.info("Starting data initialization process. Bootstrap enabled: {}", bootstrapEnabled);
+
         Role adminRole = ensureRole("ADMIN");
         ensureRole("USER");
         ensureRole("REVIEWER");
 
-        if (bootstrapEnabled) {
-            log.info("Triggering admin bootstrap with email: {}", adminEmail);
-            bootstrapAdmin(adminRole);
-        } else {
-            log.info("Bootstrap skipped because enabled flag is false.");
+        if (!bootstrapEnabled) {
+            log.info("Bootstrap admin is disabled. Skipping admin seeding.");
+            return;
         }
-        
+
+        validateBootstrapConfiguration();
+        bootstrapAdmin(adminRole);
+
         log.info("Data initialization process finished.");
+    }
+
+    private void validateBootstrapConfiguration() {
+        if (adminEmail == null || adminEmail.isBlank()) {
+            throw new IllegalStateException("BOOTSTRAP_ADMIN_EMAIL must be provided when bootstrap admin is enabled.");
+        }
+
+        if (adminPassword == null || adminPassword.isBlank()) {
+            throw new IllegalStateException(
+                    "BOOTSTRAP_ADMIN_PASSWORD must be provided when bootstrap admin is enabled.");
+        }
     }
 
     private void bootstrapAdmin(Role adminRole) {
         User admin = userRepository.findByEmail(adminEmail).orElse(null);
+
         if (admin == null) {
-            log.info("Admin user not found. Creating new admin: {}", adminEmail);
+            log.info("Admin user not found. Creating bootstrap admin with email: {}", adminEmail);
+
             admin = new User();
             admin.setEmail(adminEmail);
             admin.setPassword(passwordEncoder.encode(adminPassword));
             admin.setFirstName(adminFirstName);
             admin.setLastName(adminLastName);
             admin.getRoles().add(adminRole);
+
             userRepository.save(admin);
-            log.info("Admin user successfully bootstrapped.");
+            log.info("Bootstrap admin created successfully.");
+            return;
+        }
+
+        log.info("Admin user already exists. Ensuring ADMIN role is present.");
+
+        if (!admin.getRoles().contains(adminRole)) {
+            admin.getRoles().add(adminRole);
+            userRepository.save(admin);
+            log.info("ADMIN role added to existing user: {}", adminEmail);
         } else {
-            log.info("Admin user already exists. Checking roles...");
-            if (!admin.getRoles().contains(adminRole)) {
-                 admin.getRoles().add(adminRole);
-                 userRepository.save(admin);
-                 log.info("Added ADMIN role to existing admin user.");
-            } else {
-                 log.info("Admin user already has ADMIN role. No action taken.");
-            }
+            log.info("Existing admin already has ADMIN role. No password overwrite performed.");
         }
     }
 
     private Role ensureRole(String name) {
         return roleRepository.findByName(name).orElseGet(() -> {
-            log.info("Role {} not found. Creating...", name);
+            log.info("Role {} not found. Creating it.", name);
             Role role = new Role();
             role.setName(name);
             return roleRepository.save(role);

@@ -41,12 +41,27 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Public auth endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
+
+                        // Public health check
                         .requestMatchers("/actuator/health").permitAll()
+
+                        // Public reference endpoints needed by frontend
+                        .requestMatchers("/api/reference/topics").permitAll()
+                        .requestMatchers("/api/reference/paper-types").permitAll()
+
+                        // Swagger / OpenAPI - admin only for production safety
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").hasRole("ADMIN")
+
+                        // Role-protected endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/reviewer/**").hasRole("REVIEWER")
-                        .anyRequest().authenticated())
+
+                        // Everything else requires authentication
+                        .anyRequest().authenticated()
+                )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
